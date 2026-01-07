@@ -312,7 +312,6 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
                       {request.status === 'pending' && <Clock size={14} />}
                       {request.status === 'completed' && <CheckCircle size={14} />}
                       {request.status === 'cancelled' && <XCircle size={14} />}
-                      {t(`adminDashboard.${request.status}`)}
                     </span>
                   </td>
                   <td>{request.location}</td>

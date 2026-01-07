@@ -449,7 +449,6 @@ export default function AdminDashboard() {
                       {repair.status === 'pending' && <Clock size={14} />}
                       {repair.status === 'completed' && <CheckCircle size={14} />}
                       {repair.status === 'cancelled' && <XCircle size={14} />}
-                      {t(`adminDashboard.${repair.status}`)}
                     </span>
                   </td>
                   <td>{repair.submitterName}</td>
