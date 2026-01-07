@@ -1,0 +1,176 @@
+{
+  "en": {
+    "app": {
+      "title": "Repair Portal",
+      "loading": "Loading...",
+      "submitRequest": "Submit Request",
+      "adminPanel": "Admin Panel",
+      "logout": "Logout",
+      "footer": "© 2026 Repair Portal. All rights reserved."
+    },
+    "repairForm": {
+      "title": "Submit Repair Request",
+      "yourName": "Your Name",
+      "namePlaceholder": "John Doe",
+      "location": "Location",
+      "locationPlaceholder": "e.g., Building A, Room 101",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe the issue that needs repair...",
+      "uploadImages": "Upload Images (Not working currently 😬)",
+      "filesSelected": "file(s) selected",
+      "submitting": "Submitting...",
+      "submitRequest": "Submit Request",
+      "errorMessage": "Failed to submit repair request. Please try again."
+    },
+    "submissionSuccess": {
+      "title": "Request Submitted Successfully!",
+      "message": "Your repair request has been received and is being processed.",
+      "requestNumber": "Your Request Number:",
+      "saveInfo": "Please save this number for your records. You can use it to track your request status.",
+      "submitAnother": "Submit Another Request"
+    },
+    "login": {
+      "title": "Admin Login",
+      "email": "Email",
+      "emailPlaceholder": "admin@example.com",
+      "password": "Password",
+      "passwordPlaceholder": "••••••••",
+      "loggingIn": "Logging in...",
+      "login": "Login",
+      "errorMessage": "Invalid email or password. Please try again."
+    },
+    "adminDashboard": {
+      "title": "Repair Requests Dashboard",
+      "exportCSV": "Export to CSV",
+      "all": "All",
+      "pending": "Pending",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "noRepairs": "No repair requests found.",
+      "submittedBy": "Submitted by:",
+      "location": "Location:",
+      "date": "Date:",
+      "completedDate": "Completed:",
+      "cancelledDate": "Cancelled:",
+      "description": "Description:",
+      "showLess": "Show less",
+      "readMore": "Read more",
+      "followUpActions": "Follow-up Actions:",
+      "images": "Images:",
+      "addFollowUpPlaceholder": "Add follow-up action...",
+      "addAction": "Add Action",
+      "markAsCompleted": "Mark as Completed",
+      "cancelRequest": "Cancel Request",
+      "reopen": "Reopen",
+      "restoreToPending": "Restore to Pending",
+      "loadingRepairs": "Loading repairs...",
+      "exportModal": {
+        "title": "Export to CSV",
+        "description": "Select a date range and action type to export repair requests.",
+        "filterBy": "Filter by:",
+        "filterAll": "All (Created, Completed, or Cancelled)",
+        "filterCreated": "Date Created",
+        "filterCompleted": "Date Completed",
+        "filterCancelled": "Date Cancelled",
+        "startDate": "Start Date:",
+        "endDate": "End Date:",
+        "cancel": "Cancel",
+        "download": "Download CSV",
+        "selectDatesError": "Please select both start and end dates",
+        "noRecordsError": "No records found for the selected date range"
+      }
+    },
+    "language": {
+      "select": "Language",
+      "english": "English",
+      "traditionalChinese": "繁體中文"
+    }
+  },
+  "zh-TW": {
+    "app": {
+      "title": "維修申請系統",
+      "loading": "載入中...",
+      "submitRequest": "提交申請",
+      "adminPanel": "管理員面板",
+      "logout": "登出",
+      "footer": "© 2026 維修申請系統。版權所有。"
+    },
+    "repairForm": {
+      "title": "提交維修申請",
+      "yourName": "您的姓名",
+      "namePlaceholder": "陳大明",
+      "location": "位置",
+      "locationPlaceholder": "例如：A座，101室",
+      "description": "問題描述",
+      "descriptionPlaceholder": "請描述需要維修的問題...",
+      "uploadImages": "上傳圖片（目前暫不可用 😬）",
+      "filesSelected": "個檔案已選擇",
+      "submitting": "提交中...",
+      "submitRequest": "提交申請",
+      "errorMessage": "提交維修申請失敗。請重試。"
+    },
+    "submissionSuccess": {
+      "title": "申請提交成功！",
+      "message": "您的維修申請已收到並正在處理中。",
+      "requestNumber": "您的申請編號：",
+      "saveInfo": "請保存此編號以供記錄。您可以使用它來追蹤申請狀態。",
+      "submitAnother": "提交另一個申請"
+    },
+    "login": {
+      "title": "管理員登入",
+      "email": "電郵",
+      "emailPlaceholder": "admin@example.com",
+      "password": "密碼",
+      "passwordPlaceholder": "••••••••",
+      "loggingIn": "登入中...",
+      "login": "登入",
+      "errorMessage": "電郵或密碼無效。請重試。"
+    },
+    "adminDashboard": {
+      "title": "維修申請管理面板",
+      "exportCSV": "匯出至 CSV",
+      "all": "全部",
+      "pending": "待處理",
+      "completed": "已完成",
+      "cancelled": "已取消",
+      "noRepairs": "未找到維修申請。",
+      "submittedBy": "提交者：",
+      "location": "位置：",
+      "date": "日期：",
+      "completedDate": "完成日期：",
+      "cancelledDate": "取消日期：",
+      "description": "問題描述：",
+      "showLess": "顯示較少",
+      "readMore": "閱讀更多",
+      "followUpActions": "後續行動：",
+      "images": "圖片：",
+      "addFollowUpPlaceholder": "添加後續行動...",
+      "addAction": "添加行動",
+      "markAsCompleted": "標記為已完成",
+      "cancelRequest": "取消申請",
+      "reopen": "重新開啟",
+      "restoreToPending": "恢復為待處理",
+      "loadingRepairs": "載入維修申請中...",
+      "exportModal": {
+        "title": "匯出至 CSV",
+        "description": "選擇日期範圍和行動類型以匯出維修申請。",
+        "filterBy": "篩選依據：",
+        "filterAll": "全部（已建立、已完成或已取消）",
+        "filterCreated": "建立日期",
+        "filterCompleted": "完成日期",
+        "filterCancelled": "取消日期",
+        "startDate": "開始日期：",
+        "endDate": "結束日期：",
+        "cancel": "取消",
+        "download": "下載 CSV",
+        "selectDatesError": "請選擇開始和結束日期",
+        "noRecordsError": "在所選日期範圍內未找到記錄"
+      }
+    },
+    "language": {
+      "select": "語言",
+      "english": "English",
+      "traditionalChinese": "繁體中文"
+    }
+  }
+}

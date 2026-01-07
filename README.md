@@ -9,6 +9,7 @@ A web application for managing repair requests with user submission and admin ma
 - **Authentication**: Secure admin login system
 - **Status Tracking**: Mark repairs as completed
 - **Image Upload**: Upload and view repair images
+- **Multi-language Support**: Switch between English and Traditional Chinese (繁體中文)
 
 ## Setup
 

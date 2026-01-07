@@ -1,4 +1,5 @@
 import { CheckCircle } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface SubmissionSuccessProps {
   orderNumber: string;
@@ -6,30 +7,32 @@ interface SubmissionSuccessProps {
 }
 
 export default function SubmissionSuccess({ orderNumber, onSubmitAnother }: SubmissionSuccessProps) {
+  const { t } = useLanguage();
+
   return (
     <div className="submission-success-container">
       <div className="submission-success-card">
         <div className="success-icon">
           <CheckCircle size={64} />
         </div>
-        <h2>Request Submitted Successfully!</h2>
+        <h2>{t('submissionSuccess.title')}</h2>
         <p className="success-message">
-          Your repair request has been received and is being processed.
+          {t('submissionSuccess.message')}
         </p>
         
         <div className="order-number-section">
-          <label>Your Request Number:</label>
+          <label>{t('submissionSuccess.requestNumber')}</label>
           <div className="order-number">
             {orderNumber}
           </div>
           <p className="order-info">
-            Please save this number for your records. You can use it to track your request status.
+            {t('submissionSuccess.saveInfo')}
           </p>
         </div>
 
         <div className="success-actions">
           <button onClick={onSubmitAnother} className="btn-primary">
-            Submit Another Request
+            {t('submissionSuccess.submitAnother')}
           </button>
         </div>
       </div>

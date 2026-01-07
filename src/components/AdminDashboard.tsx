@@ -4,8 +4,10 @@ import { db } from '../firebase';
 import { RepairRequest } from '../types';
 import { format } from 'date-fns';
 import { Clock, CheckCircle, XCircle, List, Download } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function AdminDashboard() {
+  const { t } = useLanguage();
   const [repairs, setRepairs] = useState<RepairRequest[]>([]);
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed' | 'cancelled'>('all');
   const [loading, setLoading] = useState(true);
@@ -99,7 +101,7 @@ export default function AdminDashboard() {
 
   const exportToCSV = () => {
     if (!exportStartDate || !exportEndDate) {
-      alert('Please select both start and end dates');
+      alert(t('adminDashboard.exportModal.selectDatesError'));
       return;
     }
 
@@ -138,7 +140,7 @@ export default function AdminDashboard() {
     });
 
     if (filteredData.length === 0) {
-      alert('No records found for the selected date range');
+      alert(t('adminDashboard.exportModal.noRecordsError'));
       return;
     }
 
@@ -197,16 +199,16 @@ export default function AdminDashboard() {
   });
 
   if (loading) {
-    return <div className="loading">Loading repairs...</div>;
+    return <div className="loading">{t('adminDashboard.loadingRepairs')}</div>;
   }
 
   return (
     <div className="admin-dashboard">
       <div className="dashboard-header">
-        <h1>Repair Requests Dashboard</h1>
+        <h1>{t('adminDashboard.title')}</h1>
         <button onClick={() => setShowExportModal(true)} className="btn-secondary">
           <Download size={18} />
-          Export to CSV
+          {t('adminDashboard.exportCSV')}
         </button>
       </div>
 
@@ -216,34 +218,34 @@ export default function AdminDashboard() {
           onClick={() => setFilter('all')}
         >
           <List size={18} />
-          All ({repairs.length})
+          {t('adminDashboard.all')} ({repairs.length})
         </button>
         <button
           className={filter === 'pending' ? 'tab active' : 'tab'}
           onClick={() => setFilter('pending')}
         >
           <Clock size={18} />
-          Pending ({repairs.filter(r => r.status === 'pending').length})
+          {t('adminDashboard.pending')} ({repairs.filter(r => r.status === 'pending').length})
         </button>
         <button
           className={filter === 'completed' ? 'tab active' : 'tab'}
           onClick={() => setFilter('completed')}
         >
           <CheckCircle size={18} />
-          Completed ({repairs.filter(r => r.status === 'completed').length})
+          {t('adminDashboard.completed')} ({repairs.filter(r => r.status === 'completed').length})
         </button>
         <button
           className={filter === 'cancelled' ? 'tab active' : 'tab'}
           onClick={() => setFilter('cancelled')}
         >
           <XCircle size={18} />
-          Cancelled ({repairs.filter(r => r.status === 'cancelled').length})
+          {t('adminDashboard.cancelled')} ({repairs.filter(r => r.status === 'cancelled').length})
         </button>
       </div>
 
       <div className="repairs-grid">
         {filteredRepairs.length === 0 ? (
-          <p className="no-repairs">No repair requests found.</p>
+          <p className="no-repairs">{t('adminDashboard.noRepairs')}</p>
         ) : (
           filteredRepairs.map((repair) => (
             <div key={repair.id} className="repair-card">
@@ -255,19 +257,19 @@ export default function AdminDashboard() {
               </div>
               
               <div className="repair-details">
-                <p><strong>Submitted by:</strong> {repair.submitterName}</p>
-                <p><strong>Location:</strong> {repair.location}</p>
-                <p><strong>Date:</strong> {format(repair.createdAt.toDate(), 'MMM dd, yyyy HH:mm')}</p>
+                <p><strong>{t('adminDashboard.submittedBy')}</strong> {repair.submitterName}</p>
+                <p><strong>{t('adminDashboard.location')}</strong> {repair.location}</p>
+                <p><strong>{t('adminDashboard.date')}</strong> {format(repair.createdAt.toDate(), 'MMM dd, yyyy HH:mm')}</p>
                 {repair.completedAt && (
-                  <p><strong>Completed:</strong> {format(repair.completedAt.toDate(), 'MMM dd, yyyy HH:mm')}</p>
+                  <p><strong>{t('adminDashboard.completedDate')}</strong> {format(repair.completedAt.toDate(), 'MMM dd, yyyy HH:mm')}</p>
                 )}
                 {repair.cancelledAt && (
-                  <p><strong>Cancelled:</strong> {format(repair.cancelledAt.toDate(), 'MMM dd, yyyy HH:mm')}</p>
+                  <p><strong>{t('adminDashboard.cancelledDate')}</strong> {format(repair.cancelledAt.toDate(), 'MMM dd, yyyy HH:mm')}</p>
                 )}
               </div>
 
               <div className="repair-description">
-                <strong>Description:</strong>
+                <strong>{t('adminDashboard.description')}</strong>
                 <p>
                   {expandedDescriptions[repair.id!] || repair.description.length <= 200
                     ? repair.description
@@ -278,14 +280,14 @@ export default function AdminDashboard() {
                     className="btn-expand"
                     onClick={() => toggleDescription(repair.id!)}
                   >
-                    {expandedDescriptions[repair.id!] ? 'Show less' : 'Read more'}
+                    {expandedDescriptions[repair.id!] ? t('adminDashboard.showLess') : t('adminDashboard.readMore')}
                   </button>
                 )}
               </div>
 
               {repair.followUpActions && repair.followUpActions.length > 0 && (
                 <div className="follow-up-actions">
-                  <strong>Follow-up Actions:</strong>
+                  <strong>{t('adminDashboard.followUpActions')}</strong>
                   <ul>
                     {repair.followUpActions.map((action, index) => (
                       <li key={index}>{action}</li>
@@ -296,7 +298,7 @@ export default function AdminDashboard() {
 
               {repair.imageUrls.length > 0 && (
                 <div className="repair-images">
-                  <strong>Images:</strong>
+                  <strong>{t('adminDashboard.images')}</strong>
                   <div className="image-grid">
                     {repair.imageUrls.map((url, index) => (
                       <img
@@ -317,7 +319,7 @@ export default function AdminDashboard() {
                     <div className="follow-up-input">
                       <input
                         type="text"
-                        placeholder="Add follow-up action..."
+                        placeholder={t('adminDashboard.addFollowUpPlaceholder')}
                         value={followUpAction[repair.id!] || ''}
                         onChange={(e) => setFollowUpAction({ ...followUpAction, [repair.id!]: e.target.value })}
                         onKeyDown={(e) => {
@@ -332,7 +334,7 @@ export default function AdminDashboard() {
                         className="btn-secondary"
                         disabled={!followUpAction[repair.id!]?.trim()}
                       >
-                        Add Action
+                        {t('adminDashboard.addAction')}
                       </button>
                     </div>
                     <div className="action-buttons">
@@ -340,13 +342,13 @@ export default function AdminDashboard() {
                         onClick={() => handleMarkAsCompleted(repair.id!)}
                         className="btn-success"
                       >
-                        Mark as Completed
+                        {t('adminDashboard.markAsCompleted')}
                       </button>
                       <button
                         onClick={() => handleCancelRepair(repair.id!)}
                         className="btn-danger"
                       >
-                        Cancel Request
+                        {t('adminDashboard.cancelRequest')}
                       </button>
                     </div>
                   </>
@@ -355,14 +357,14 @@ export default function AdminDashboard() {
                     onClick={() => handleMarkAsPending(repair.id!)}
                     className="btn-warning"
                   >
-                    Reopen
+                    {t('adminDashboard.reopen')}
                   </button>
                 ) : (
                   <button
                     onClick={() => handleMarkAsPending(repair.id!)}
                     className="btn-warning"
                   >
-                    Restore to Pending
+                    {t('adminDashboard.restoreToPending')}
                   </button>
                 )}
               </div>
@@ -404,27 +406,27 @@ export default function AdminDashboard() {
             >
               ×
             </button>
-            <h2>Export to CSV</h2>
-            <p className="modal-description">Select a date range and action type to export repair requests.</p>
+            <h2>{t('adminDashboard.exportModal.title')}</h2>
+            <p className="modal-description">{t('adminDashboard.exportModal.description')}</p>
             
             <div className="export-form">
               <div className="form-group">
-                <label htmlFor="dateType">Filter by:</label>
+                <label htmlFor="dateType">{t('adminDashboard.exportModal.filterBy')}</label>
                 <select
                   id="dateType"
                   value={exportDateType}
                   onChange={(e) => setExportDateType(e.target.value as 'all' | 'created' | 'completed' | 'cancelled')}
                   className="export-select"
                 >
-                  <option value="all">All (Created, Completed, or Cancelled)</option>
-                  <option value="created">Date Created</option>
-                  <option value="completed">Date Completed</option>
-                  <option value="cancelled">Date Cancelled</option>
+                  <option value="all">{t('adminDashboard.exportModal.filterAll')}</option>
+                  <option value="created">{t('adminDashboard.exportModal.filterCreated')}</option>
+                  <option value="completed">{t('adminDashboard.exportModal.filterCompleted')}</option>
+                  <option value="cancelled">{t('adminDashboard.exportModal.filterCancelled')}</option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label htmlFor="startDate">Start Date:</label>
+                <label htmlFor="startDate">{t('adminDashboard.exportModal.startDate')}</label>
                 <input
                   id="startDate"
                   type="date"
@@ -435,7 +437,7 @@ export default function AdminDashboard() {
               </div>
 
               <div className="form-group">
-                <label htmlFor="endDate">End Date:</label>
+                <label htmlFor="endDate">{t('adminDashboard.exportModal.endDate')}</label>
                 <input
                   id="endDate"
                   type="date"
@@ -447,11 +449,11 @@ export default function AdminDashboard() {
 
               <div className="export-actions">
                 <button onClick={() => setShowExportModal(false)} className="btn-secondary">
-                  Cancel
+                  {t('adminDashboard.exportModal.cancel')}
                 </button>
                 <button onClick={exportToCSV} className="btn-primary">
                   <Download size={18} />
-                  Download CSV
+                  {t('adminDashboard.exportModal.download')}
                 </button>
               </div>
             </div>

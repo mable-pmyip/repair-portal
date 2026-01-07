@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../firebase';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface RepairFormProps {
   onSuccess: (orderNumber: string) => void;
 }
 
 export default function RepairForm({ onSuccess }: RepairFormProps) {
+  const { t } = useLanguage();
   const [description, setDescription] = useState('');
   const [submitterName, setSubmitterName] = useState('');
   const [location, setLocation] = useState('');
@@ -60,7 +62,7 @@ export default function RepairForm({ onSuccess }: RepairFormProps) {
       // Call success callback with order number
       onSuccess(orderNumber);
     } catch (err) {
-      setError('Failed to submit repair request. Please try again.');
+      setError(t('repairForm.errorMessage'));
       console.error('Submission error:', err);
     } finally {
       setLoading(false);
@@ -70,46 +72,46 @@ export default function RepairForm({ onSuccess }: RepairFormProps) {
   return (
     <div className="repair-form-container">
       <div className="repair-form-card">
-        <h2>Submit Repair Request</h2>
+        <h2>{t('repairForm.title')}</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="name">Your Name</label>
+            <label htmlFor="name">{t('repairForm.yourName')}</label>
             <input
               id="name"
               type="text"
               value={submitterName}
               onChange={(e) => setSubmitterName(e.target.value)}
               required
-              placeholder="John Doe"
+              placeholder={t('repairForm.namePlaceholder')}
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="location">Location</label>
+            <label htmlFor="location">{t('repairForm.location')}</label>
             <input
               id="location"
               type="text"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               required
-              placeholder="e.g., Building A, Room 101"
+              placeholder={t('repairForm.locationPlaceholder')}
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="description">Description</label>
+            <label htmlFor="description">{t('repairForm.description')}</label>
             <textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
-              placeholder="Describe the issue that needs repair..."
+              placeholder={t('repairForm.descriptionPlaceholder')}
               rows={5}
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="images">Upload Images (Not working currently 😬)</label>
+            <label htmlFor="images">{t('repairForm.uploadImages')}</label>
             <input
               id="images"
               type="file"
@@ -118,14 +120,14 @@ export default function RepairForm({ onSuccess }: RepairFormProps) {
               onChange={handleImageChange}
             />
             {images.length > 0 && (
-              <p className="file-info">{images.length} file(s) selected</p>
+              <p className="file-info">{images.length} {t('repairForm.filesSelected')}</p>
             )}
           </div>
 
           {error && <div className="error-message">{error}</div>}
 
           <button type="submit" disabled={loading} className="btn-primary">
-            {loading ? 'Submitting...' : 'Submit Request'}
+            {loading ? t('repairForm.submitting') : t('repairForm.submitRequest')}
           </button>
         </form>
       </div>

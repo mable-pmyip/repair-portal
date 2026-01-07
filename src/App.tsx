@@ -5,9 +5,12 @@ import Login from './components/Login';
 import RepairForm from './components/RepairForm';
 import AdminDashboard from './components/AdminDashboard';
 import SubmissionSuccess from './components/SubmissionSuccess';
+import LanguageSelector from './components/LanguageSelector';
+import { useLanguage } from './contexts/LanguageContext';
 import './App.css';
 
 function App() {
+  const { t } = useLanguage();
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [view, setView] = useState<'user' | 'admin'>('user');
@@ -43,7 +46,7 @@ function App() {
   };
 
   if (isLoading) {
-    return <div className="loading">Loading...</div>;
+    return <div className="loading">{t('app.loading')}</div>;
   }
 
   return (
@@ -63,39 +66,40 @@ function App() {
           </a>
         </div>
         <div className="nav-brand">
-          <h1>🔧 Repair Portal</h1>
+          <h1>🔧 {t('app.title')}</h1>
         </div>
         <div className="nav-links">
+          <LanguageSelector />
           {!isAdmin ? (
             <>
               <button
                 className={view === 'user' ? 'nav-link active' : 'nav-link'}
                 onClick={() => setView('user')}
-                title="Submit Request"
+                title={t('app.submitRequest')}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 5v14M5 12h14"/>
                 </svg>
-                <span className="nav-link-text">Submit Request</span>
+                <span className="nav-link-text">{t('app.submitRequest')}</span>
               </button>
               <button
                 className={view === 'admin' ? 'nav-link active' : 'nav-link'}
                 onClick={() => setView('admin')}
-                title="Admin Panel"
+                title={t('app.adminPanel')}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                   <path d="M9 12l2 2 4-4"/>
                 </svg>
-                <span className="nav-link-text">Admin Panel</span>
+                <span className="nav-link-text">{t('app.adminPanel')}</span>
               </button>
             </>
           ) : (
-            <button onClick={handleLogout} className="btn-secondary" title="Logout">
+            <button onClick={handleLogout} className="btn-secondary" title={t('app.logout')}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
               </svg>
-              <span className="btn-text">Logout</span>
+              <span className="btn-text">{t('app.logout')}</span>
             </button>
           )}
         </div>
@@ -119,7 +123,7 @@ function App() {
       </main>
 
       <footer className="footer">
-        <p>© 2026 Repair Portal. All rights reserved.</p>
+        <p>{t('app.footer')}</p>
       </footer>
     </div>
   );
