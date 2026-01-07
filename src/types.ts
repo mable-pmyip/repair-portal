@@ -14,6 +14,8 @@ export interface RepairRequest {
   submitterEmail?: string;
   submitterUid?: string;
   followUpActions?: string[];
+  completionReason?: string;
+  cancellationReason?: string;
 }
 
 export interface User {

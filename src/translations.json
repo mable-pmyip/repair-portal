@@ -50,11 +50,11 @@
       "cancelled": "Cancelled",
       "noRepairs": "No repair requests found.",
       "noRepairsDescription": "When users submit repair requests, they will appear here.",
-      "submittedBy": "Submitted by:",
+      "submittedBy": "Submitted by",
       "submittedOn": "Submitted on",
       "completedOn": "Completed on",
-      "cancelledOn": "Cancelled on",
-      "location": "Location:",
+      "cancelledOn": "Cancelled on",      "completionReason": "Completion reason",
+      "cancellationReason": "Cancellation reason",      "location": "Location:",
       "date": "Date:",
       "completedDate": "Completed:",
       "cancelledDate": "Cancelled:",
@@ -85,6 +85,15 @@
         "download": "Download CSV",
         "selectDatesError": "Please select both start and end dates",
         "noRecordsError": "No records found for the selected date range"
+      },
+      "actionModal": {
+        "completeTitle": "Mark as Completed",
+        "completeMessage": "Please provide an optional reason for completing this request.",
+        "cancelTitle": "Cancel Request",
+        "cancelMessage": "Please provide an optional reason for cancelling this request.",
+        "reasonLabel": "Reason (Optional)",
+        "completePlaceholder": "e.g., Repair completed successfully, issue resolved...",
+        "cancelPlaceholder": "e.g., Duplicate request, not feasible, user cancelled..."
       }
     },
     "language": {
@@ -239,11 +248,11 @@
       "cancelled": "已取消",
       "noRepairs": "未找到維修申請。",
       "noRepairsDescription": "當用戶提交維修申請時，它們將顯示在這裡。",
-      "submittedBy": "提交者：",
+      "submittedBy": "提交者",
       "submittedOn": "提交日期",
       "completedOn": "完成日期",
-      "cancelledOn": "取消日期",
-      "location": "位置：",
+      "cancelledOn": "取消日期",      "completionReason": "完成原因",
+      "cancellationReason": "取消原因",      "location": "位置：",
       "date": "日期：",
       "completedDate": "完成日期：",
       "cancelledDate": "取消日期：",
@@ -274,6 +283,15 @@
         "download": "下載 CSV",
         "selectDatesError": "請選擇開始和結束日期",
         "noRecordsError": "在所選日期範圍內未找到記錄"
+      },
+      "actionModal": {
+        "completeTitle": "標記為已完成",
+        "completeMessage": "請提供完成此申請的原因（可選）。",
+        "cancelTitle": "取消申請",
+        "cancelMessage": "請提供取消此申請的原因（可選）。",
+        "reasonLabel": "原因（可選）",
+        "completePlaceholder": "例如：維修成功完成，問題已解決...",
+        "cancelPlaceholder": "例如：重複申請，不可行，用戶取消..."
       }
     },
     "language": {

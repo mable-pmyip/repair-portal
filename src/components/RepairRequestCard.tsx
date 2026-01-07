@@ -64,6 +64,20 @@ export default function RepairRequestCard({
         )}
       </div>
 
+      {request.completionReason && (
+        <div className="action-reason-box completion-reason">
+          <strong>{t('adminDashboard.completionReason')}:</strong>
+          <p>{request.completionReason}</p>
+        </div>
+      )}
+
+      {request.cancellationReason && (
+        <div className="action-reason-box cancellation-reason">
+          <strong>{t('adminDashboard.cancellationReason')}:</strong>
+          <p>{request.cancellationReason}</p>
+        </div>
+      )}
+
       <div className="repair-description">
         <strong>{t('repairForm.description')}:</strong>
         <p>

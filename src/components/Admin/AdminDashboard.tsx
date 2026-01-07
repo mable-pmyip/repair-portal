@@ -5,6 +5,7 @@ import { RepairRequest } from '../../types';
 import { Clock, CheckCircle, XCircle, List, Download, FileText } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import RepairRequestCard from '../RepairRequestCard';
+import ActionReasonModal from '../ActionReasonModal';
 import { format } from 'date-fns';
 
 export default function AdminDashboard() {
@@ -18,6 +19,7 @@ export default function AdminDashboard() {
   const [exportStartDate, setExportStartDate] = useState('');
   const [exportEndDate, setExportEndDate] = useState('');
   const [exportDateType, setExportDateType] = useState<'all' | 'created' | 'completed' | 'cancelled'>('all');
+  const [actionModal, setActionModal] = useState<{ type: 'complete' | 'cancel' | null; repairId: string | null }>({ type: null, repairId: null });
 
   useEffect(() => {
     const q = query(collection(db, 'repairs'), orderBy('createdAt', 'desc'));
@@ -33,13 +35,21 @@ export default function AdminDashboard() {
     return () => unsubscribe();
   }, []);
 
-  const handleMarkAsCompleted = async (repairId: string) => {
+  const handleMarkAsCompleted = (repairId: string) => {
+    setActionModal({ type: 'complete', repairId });
+  };
+
+  const confirmMarkAsCompleted = async (reason: string) => {
+    if (!actionModal.repairId) return;
+    
     try {
-      const repairRef = doc(db, 'repairs', repairId);
+      const repairRef = doc(db, 'repairs', actionModal.repairId);
       await updateDoc(repairRef, {
         status: 'completed',
         completedAt: Timestamp.now(),
+        completionReason: reason || null,
       });
+      setActionModal({ type: null, repairId: null });
     } catch (error) {
       console.error('Error updating repair:', error);
     }
@@ -74,13 +84,21 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleCancelRepair = async (repairId: string) => {
+  const handleCancelRepair = (repairId: string) => {
+    setActionModal({ type: 'cancel', repairId });
+  };
+
+  const confirmCancelRepair = async (reason: string) => {
+    if (!actionModal.repairId) return;
+    
     try {
-      const repairRef = doc(db, 'repairs', repairId);
+      const repairRef = doc(db, 'repairs', actionModal.repairId);
       await updateDoc(repairRef, {
         status: 'cancelled',
         cancelledAt: Timestamp.now(),
+        cancellationReason: reason || null,
       });
+      setActionModal({ type: null, repairId: null });
     } catch (error) {
       console.error('Error cancelling repair:', error);
     }
@@ -358,6 +376,32 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+
+      <ActionReasonModal
+        isOpen={actionModal.type === 'complete'}
+        title={t('adminDashboard.actionModal.completeTitle')}
+        message={t('adminDashboard.actionModal.completeMessage')}
+        reasonLabel={t('adminDashboard.actionModal.reasonLabel')}
+        reasonPlaceholder={t('adminDashboard.actionModal.completePlaceholder')}
+        confirmText={t('adminDashboard.markAsCompleted')}
+        cancelText={t('adminDashboard.exportModal.cancel')}
+        onConfirm={confirmMarkAsCompleted}
+        onCancel={() => setActionModal({ type: null, repairId: null })}
+        variant="success"
+      />
+
+      <ActionReasonModal
+        isOpen={actionModal.type === 'cancel'}
+        title={t('adminDashboard.actionModal.cancelTitle')}
+        message={t('adminDashboard.actionModal.cancelMessage')}
+        reasonLabel={t('adminDashboard.actionModal.reasonLabel')}
+        reasonPlaceholder={t('adminDashboard.actionModal.cancelPlaceholder')}
+        confirmText={t('adminDashboard.cancelRequest')}
+        cancelText={t('adminDashboard.exportModal.cancel')}
+        onConfirm={confirmCancelRepair}
+        onCancel={() => setActionModal({ type: null, repairId: null })}
+        variant="danger"
+      />
     </div>
   );
 }
