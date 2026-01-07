@@ -11,7 +11,7 @@ export default function UserLoginPage({ onLoginSuccess }: UserLoginPageProps) {
 
   const handleLogin = (user: PortalUser) => {
     onLoginSuccess(user);
-    navigate('/submit');
+    navigate('/user-home');
   };
 
   return <UserLogin onLoginSuccess={handleLogin} />;

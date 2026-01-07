@@ -9,9 +9,11 @@ import PasswordReset from './components/PasswordReset';
 import LanguageSelector from './components/LanguageSelector';
 import HomePage from './routes/HomePage';
 import AdminHomePage from './routes/AdminHomePage';
+import UserHomePage from './routes/UserHomePage';
 import AdminLoginPage from './routes/AdminLoginPage';
 import UserLoginPage from './routes/UserLoginPage';
 import SubmitRequestPage from './routes/SubmitRequestPage';
+import MyRequestsPage from './routes/MyRequestsPage';
 import ProtectedRoute from './routes/ProtectedRoute';
 import { useLanguage } from './contexts/LanguageContext';
 import { PortalUser } from './types';
@@ -26,6 +28,22 @@ function AppContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [showPasswordReset, setShowPasswordReset] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.user-menu')) {
+        setShowUserDropdown(false);
+      }
+    };
+
+    if (showUserDropdown) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showUserDropdown]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -47,7 +65,7 @@ function AppContent() {
           if (userData.isFirstLogin && !location.pathname.startsWith('/admin')) {
             setShowPasswordReset(true);
           } else if (location.pathname === '/user-login') {
-            navigate('/submit');
+            navigate('/user-home');
           }
         } else {
           // User NOT in users collection - treat as admin
@@ -118,9 +136,37 @@ function AppContent() {
         </div>
         <div className="nav-links">
           {currentUser && (
-            <span className="user-info">
-              👤 {currentUser.username}
-            </span>
+            <div className="user-menu">
+              <button 
+                className="user-menu-trigger"
+                onClick={() => setShowUserDropdown(!showUserDropdown)}
+                title={currentUser.username}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span className="user-name">{currentUser.username}</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </button>
+              {showUserDropdown && (
+                <div className="user-dropdown">
+                  <div className="user-dropdown-header">
+                    <div className="user-dropdown-name">{currentUser.username}</div>
+                    <div className="user-dropdown-email">{currentUser.email}</div>
+                  </div>
+                  <div className="user-dropdown-divider"></div>
+                  <button onClick={handleLogout} className="user-dropdown-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+                    </svg>
+                    {t('app.logout')}
+                  </button>
+                </div>
+              )}
+            </div>
           )}
           {!isAdmin && !currentUser ? (
             <>
@@ -147,14 +193,35 @@ function AppContent() {
                 <span className="nav-link-text">{t('app.adminLogin')}</span>
               </Link>
             </>
-          ) : currentUser ? (
-            <button onClick={handleLogout} className="btn-secondary" title={t('app.logout')}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
-              </svg>
-              <span className="btn-text">{t('app.logout')}</span>
-            </button>
           ) : null}
+          {currentUser && !isAdmin && (
+            <>
+              <Link
+                to="/user/submit"
+                className={location.pathname === '/user/submit' ? 'nav-link active' : 'nav-link'}
+                title={t('userHome.submitRequest')}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="12" y1="18" x2="12" y2="12"/>
+                  <line x1="9" y1="15" x2="15" y2="15"/>
+                </svg>
+                <span className="nav-link-text">{t('userHome.submitRequest')}</span>
+              </Link>
+              <Link
+                to="/user/my-requests"
+                className={location.pathname === '/user/my-requests' ? 'nav-link active' : 'nav-link'}
+                title={t('userHome.myRequests')}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <span className="nav-link-text">{t('userHome.myRequests')}</span>
+              </Link>
+            </>
+          )}
           {isAdmin && (
             <>
               <Link
@@ -211,10 +278,26 @@ function AppContent() {
           <Route path="/user-login" element={<UserLoginPage onLoginSuccess={handleUserLogin} />} />
           <Route path="/admin-login" element={<AdminLoginPage />} />
           <Route 
-            path="/submit" 
+            path="/user-home" 
+            element={
+              <ProtectedRoute isAllowed={!!currentUser} redirectTo="/user-login">
+                <UserHomePage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/user/submit" 
             element={
               <ProtectedRoute isAllowed={!!currentUser} redirectTo="/user-login">
                 <SubmitRequestPage user={currentUser!} />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/user/my-requests" 
+            element={
+              <ProtectedRoute isAllowed={!!currentUser} redirectTo="/user-login">
+                <MyRequestsPage user={currentUser!} />
               </ProtectedRoute>
             } 
           />
