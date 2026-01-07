@@ -3,7 +3,7 @@ import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestor
 import { db } from '../firebase';
 import { useLanguage } from '../contexts/LanguageContext';
 import { PortalUser, RepairRequest } from '../types';
-import { Clock, CheckCircle, XCircle, List, FileText } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, List, FileText, Search } from 'lucide-react';
 import RepairRequestCard from '../components/RepairRequestCard';
 
 interface MyRequestsPageProps {
@@ -16,6 +16,7 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed' | 'cancelled'>('all');
   const [expandedDescriptions, setExpandedDescriptions] = useState<{ [key: string]: boolean }>({});
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     console.log('MyRequestsPage - user.uid:', user.uid);
@@ -74,8 +75,25 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
   };
 
   const filteredRequests = requests.filter((req) => {
-    if (filter === 'all') return true;
-    return req.status === filter;
+    // Filter by status
+    const statusMatch = filter === 'all' || req.status === filter;
+    
+    // Filter by search query
+    if (!searchQuery.trim()) return statusMatch;
+    
+    const query = searchQuery.toLowerCase();
+    const searchableFields = [
+      req.orderNumber?.toLowerCase() || '',
+      req.description?.toLowerCase() || '',
+      req.location?.toLowerCase() || '',
+      req.followUpActions?.join(' ').toLowerCase() || '',
+      req.completionReason?.toLowerCase() || '',
+      req.cancellationReason?.toLowerCase() || ''
+    ];
+    
+    const searchMatch = searchableFields.some(field => field.includes(query));
+    
+    return statusMatch && searchMatch;
   });
 
   return (
@@ -95,34 +113,90 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
         </div>
       )}
 
+      <div className="search-box">
+        <Search size={20} className="search-icon" />
+        <input
+          type="text"
+          placeholder={t('myRequests.searchPlaceholder')}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="search-input"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            className="search-clear"
+            aria-label="Clear search"
+          >
+            ×
+          </button>
+        )}
+      </div>
+
       <div className="filter-tabs">
         <button
           className={filter === 'all' ? 'filter-tab active' : 'filter-tab'}
           onClick={() => setFilter('all')}
         >
           <List size={18} />
-          {t('adminDashboard.all')} ({requests.length})
+          {t('adminDashboard.all')} ({filteredRequests.length})
         </button>
         <button
           className={filter === 'pending' ? 'filter-tab active' : 'filter-tab'}
           onClick={() => setFilter('pending')}
         >
           <Clock size={18} />
-          {t('adminDashboard.pending')} ({requests.filter((r) => r.status === 'pending').length})
+          {t('adminDashboard.pending')} ({requests.filter(r => {
+            if (!searchQuery.trim()) return r.status === 'pending';
+            const query = searchQuery.toLowerCase();
+            const searchableFields = [
+              r.orderNumber?.toLowerCase() || '',
+              r.description?.toLowerCase() || '',
+              r.location?.toLowerCase() || '',
+              r.followUpActions?.join(' ').toLowerCase() || '',
+              r.completionReason?.toLowerCase() || '',
+              r.cancellationReason?.toLowerCase() || ''
+            ];
+            return r.status === 'pending' && searchableFields.some(field => field.includes(query));
+          }).length})
         </button>
         <button
           className={filter === 'completed' ? 'filter-tab active' : 'filter-tab'}
           onClick={() => setFilter('completed')}
         >
           <CheckCircle size={18} />
-          {t('adminDashboard.completed')} ({requests.filter((r) => r.status === 'completed').length})
+          {t('adminDashboard.completed')} ({requests.filter(r => {
+            if (!searchQuery.trim()) return r.status === 'completed';
+            const query = searchQuery.toLowerCase();
+            const searchableFields = [
+              r.orderNumber?.toLowerCase() || '',
+              r.description?.toLowerCase() || '',
+              r.location?.toLowerCase() || '',
+              r.followUpActions?.join(' ').toLowerCase() || '',
+              r.completionReason?.toLowerCase() || '',
+              r.cancellationReason?.toLowerCase() || ''
+            ];
+            return r.status === 'completed' && searchableFields.some(field => field.includes(query));
+          }).length})
         </button>
         <button
           className={filter === 'cancelled' ? 'filter-tab active' : 'filter-tab'}
           onClick={() => setFilter('cancelled')}
         >
           <XCircle size={18} />
-          {t('adminDashboard.cancelled')} ({requests.filter((r) => r.status === 'cancelled').length})
+          {t('adminDashboard.cancelled')} ({requests.filter(r => {
+            if (!searchQuery.trim()) return r.status === 'cancelled';
+            const query = searchQuery.toLowerCase();
+            const searchableFields = [
+              r.orderNumber?.toLowerCase() || '',
+              r.description?.toLowerCase() || '',
+              r.location?.toLowerCase() || '',
+              r.followUpActions?.join(' ').toLowerCase() || '',
+              r.completionReason?.toLowerCase() || '',
+              r.cancellationReason?.toLowerCase() || ''
+            ];
+            return r.status === 'cancelled' && searchableFields.some(field => field.includes(query));
+          }).length})
         </button>
       </div>
 

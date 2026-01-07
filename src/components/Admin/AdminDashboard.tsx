@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, doc, updateDoc, Timestamp, orderBy } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { RepairRequest } from '../../types';
-import { Clock, CheckCircle, XCircle, List, Download, FileText } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, List, Download, FileText, Search } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import RepairRequestCard from '../RepairRequestCard';
 import ActionReasonModal from '../ActionReasonModal';
@@ -20,6 +20,7 @@ export default function AdminDashboard() {
   const [exportEndDate, setExportEndDate] = useState('');
   const [exportDateType, setExportDateType] = useState<'all' | 'created' | 'completed' | 'cancelled'>('all');
   const [actionModal, setActionModal] = useState<{ type: 'complete' | 'cancel' | null; repairId: string | null }>({ type: null, repairId: null });
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const q = query(collection(db, 'repairs'), orderBy('createdAt', 'desc'));
@@ -211,8 +212,26 @@ export default function AdminDashboard() {
   };
 
   const filteredRepairs = repairs.filter(repair => {
-    if (filter === 'all') return true;
-    return repair.status === filter;
+    // Filter by status
+    const statusMatch = filter === 'all' || repair.status === filter;
+    
+    // Filter by search query
+    if (!searchQuery.trim()) return statusMatch;
+    
+    const query = searchQuery.toLowerCase();
+    const searchableFields = [
+      repair.orderNumber?.toLowerCase() || '',
+      repair.description?.toLowerCase() || '',
+      repair.location?.toLowerCase() || '',
+      repair.submitterName?.toLowerCase() || '',
+      repair.followUpActions?.join(' ').toLowerCase() || '',
+      repair.completionReason?.toLowerCase() || '',
+      repair.cancellationReason?.toLowerCase() || ''
+    ];
+    
+    const searchMatch = searchableFields.some(field => field.includes(query));
+    
+    return statusMatch && searchMatch;
   });
 
   return (
@@ -228,34 +247,93 @@ export default function AdminDashboard() {
         </button>
       </div>
 
+      <div className="search-box">
+        <Search size={20} className="search-icon" />
+        <input
+          type="text"
+          placeholder={t('adminDashboard.searchPlaceholder')}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="search-input"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            className="search-clear"
+            aria-label="Clear search"
+          >
+            ×
+          </button>
+        )}
+      </div>
+
       <div className="filter-tabs">
         <button
           className={filter === 'all' ? 'filter-tab active' : 'filter-tab'}
           onClick={() => setFilter('all')}
         >
           <List size={18} />
-          {t('adminDashboard.all')} ({repairs.length})
+          {t('adminDashboard.all')} ({filteredRepairs.length})
         </button>
         <button
           className={filter === 'pending' ? 'filter-tab active' : 'filter-tab'}
           onClick={() => setFilter('pending')}
         >
           <Clock size={18} />
-          {t('adminDashboard.pending')} ({repairs.filter(r => r.status === 'pending').length})
+          {t('adminDashboard.pending')} ({repairs.filter(r => {
+            if (!searchQuery.trim()) return r.status === 'pending';
+            const query = searchQuery.toLowerCase();
+            const searchableFields = [
+              r.orderNumber?.toLowerCase() || '',
+              r.description?.toLowerCase() || '',
+              r.location?.toLowerCase() || '',
+              r.submitterName?.toLowerCase() || '',
+              r.followUpActions?.join(' ').toLowerCase() || '',
+              r.completionReason?.toLowerCase() || '',
+              r.cancellationReason?.toLowerCase() || ''
+            ];
+            return r.status === 'pending' && searchableFields.some(field => field.includes(query));
+          }).length})
         </button>
         <button
           className={filter === 'completed' ? 'filter-tab active' : 'filter-tab'}
           onClick={() => setFilter('completed')}
         >
           <CheckCircle size={18} />
-          {t('adminDashboard.completed')} ({repairs.filter(r => r.status === 'completed').length})
+          {t('adminDashboard.completed')} ({repairs.filter(r => {
+            if (!searchQuery.trim()) return r.status === 'completed';
+            const query = searchQuery.toLowerCase();
+            const searchableFields = [
+              r.orderNumber?.toLowerCase() || '',
+              r.description?.toLowerCase() || '',
+              r.location?.toLowerCase() || '',
+              r.submitterName?.toLowerCase() || '',
+              r.followUpActions?.join(' ').toLowerCase() || '',
+              r.completionReason?.toLowerCase() || '',
+              r.cancellationReason?.toLowerCase() || ''
+            ];
+            return r.status === 'completed' && searchableFields.some(field => field.includes(query));
+          }).length})
         </button>
         <button
           className={filter === 'cancelled' ? 'filter-tab active' : 'filter-tab'}
           onClick={() => setFilter('cancelled')}
         >
           <XCircle size={18} />
-          {t('adminDashboard.cancelled')} ({repairs.filter(r => r.status === 'cancelled').length})
+          {t('adminDashboard.cancelled')} ({repairs.filter(r => {
+            if (!searchQuery.trim()) return r.status === 'cancelled';
+            const query = searchQuery.toLowerCase();
+            const searchableFields = [
+              r.orderNumber?.toLowerCase() || '',
+              r.description?.toLowerCase() || '',
+              r.location?.toLowerCase() || '',
+              r.submitterName?.toLowerCase() || '',
+              r.followUpActions?.join(' ').toLowerCase() || '',
+              r.completionReason?.toLowerCase() || '',
+              r.cancellationReason?.toLowerCase() || ''
+            ];
+            return r.status === 'cancelled' && searchableFields.some(field => field.includes(query));
+          }).length})
         </button>
       </div>
 
