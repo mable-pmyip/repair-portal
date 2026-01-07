@@ -92,7 +92,7 @@ export default function RepairRequestCard({
 
       {request.imageUrls && request.imageUrls.length > 0 && (
         <div className="repair-images">
-          <strong>{t('adminDashboard.images')}:</strong>
+          <strong>{t('adminDashboard.images')}</strong>
           <div className="image-grid">
             {request.imageUrls.map((url, index) => (
               <img

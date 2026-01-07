@@ -28,7 +28,6 @@
       "title": "Request Submitted Successfully!",
       "message": "Your repair request has been received and is being processed.",
       "requestNumber": "Your Request Number:",
-      "saveInfo": "Please save this number for your records. You can use it to track your request status.",
       "submitAnother": "Submit Another Request"
     },
     "login": {
@@ -112,8 +111,6 @@
       "lastLogin": "Last Login",
       "actions": "Actions",
       "edit": "Edit",
-      "suspend": "Suspend",
-      "activate": "Activate",
       "resetPassword": "Reset Password",
       "delete": "Delete",
       "cancel": "Cancel",
@@ -220,7 +217,6 @@
       "title": "申請提交成功！",
       "message": "您的維修申請已收到並正在處理中。",
       "requestNumber": "您的申請編號：",
-      "saveInfo": "請保存此編號以供記錄。您可以使用它來追蹤申請狀態。",
       "submitAnother": "提交另一個申請"
     },
     "login": {
@@ -304,8 +300,6 @@
       "lastLogin": "最後登入",
       "actions": "操作",
       "edit": "編輯",
-      "suspend": "暫停",
-      "activate": "啟用",
       "resetPassword": "重置密碼",
       "delete": "刪除",
       "cancel": "取消",

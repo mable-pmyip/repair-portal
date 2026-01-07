@@ -233,12 +233,6 @@ export default function UserManagement() {
                   <SortIcon column="department" />
                 </span>
               </th>
-              <th onClick={() => handleSort('status')} className="sortable-header">
-                <span>
-                  {t('userManagement.status')}
-                  <SortIcon column="status" />
-                </span>
-              </th>
               <th onClick={() => handleSort('createdAt')} className="sortable-header">
                 <span>
                   {t('userManagement.createdAt')}
@@ -257,7 +251,7 @@ export default function UserManagement() {
           <tbody>
             {sortedUsers.length === 0 ? (
               <tr>
-                <td colSpan={6} className="no-data">
+                <td colSpan={5} className="no-data">
                   {t('userManagement.noUsers')}
                 </td>
               </tr>
@@ -266,11 +260,6 @@ export default function UserManagement() {
                 <tr key={user.id}>
                   <td>{user.username}</td>
                   <td>{user.department}</td>
-                  <td>
-                    <span className={`status-badge ${user.status}`}>
-                      {user.status === 'active' ? t('userManagement.active') : t('userManagement.suspended')}
-                    </span>
-                  </td>
                   <td>{format(user.createdAt.toDate(), 'MMM dd, yyyy')}</td>
                   <td>{user.lastLogin ? format(user.lastLogin.toDate(), 'MMM dd, yyyy HH:mm') : '-'}</td>
                   <td>
