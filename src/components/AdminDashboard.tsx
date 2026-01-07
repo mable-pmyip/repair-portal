@@ -3,7 +3,7 @@ import { collection, query, onSnapshot, doc, updateDoc, Timestamp, orderBy } fro
 import { db } from '../firebase';
 import { RepairRequest } from '../types';
 import { format } from 'date-fns';
-import { Clock, CheckCircle, XCircle, List } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, List, Download } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [repairs, setRepairs] = useState<RepairRequest[]>([]);
@@ -12,6 +12,10 @@ export default function AdminDashboard() {
   const [selectedRepair, setSelectedRepair] = useState<RepairRequest | null>(null);
   const [followUpAction, setFollowUpAction] = useState<{ [key: string]: string }>({});
   const [expandedDescriptions, setExpandedDescriptions] = useState<{ [key: string]: boolean }>({});
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportStartDate, setExportStartDate] = useState('');
+  const [exportEndDate, setExportEndDate] = useState('');
+  const [exportDateType, setExportDateType] = useState<'all' | 'created' | 'completed' | 'cancelled'>('all');
 
   useEffect(() => {
     const q = query(collection(db, 'repairs'), orderBy('createdAt', 'desc'));
@@ -93,6 +97,100 @@ export default function AdminDashboard() {
     return text.substring(0, maxLength) + '...';
   };
 
+  const exportToCSV = () => {
+    if (!exportStartDate || !exportEndDate) {
+      alert('Please select both start and end dates');
+      return;
+    }
+
+    const startDate = new Date(exportStartDate);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(exportEndDate);
+    endDate.setHours(23, 59, 59, 999);
+
+    // Filter repairs based on selected date range and type
+    const filteredData = repairs.filter(repair => {
+      if (exportDateType === 'all') {
+        // Check if any date falls within range
+        const createdDate = repair.createdAt.toDate();
+        const completedDate = repair.completedAt?.toDate();
+        const cancelledDate = repair.cancelledAt?.toDate();
+
+        const createdInRange = createdDate >= startDate && createdDate <= endDate;
+        const completedInRange = completedDate && completedDate >= startDate && completedDate <= endDate;
+        const cancelledInRange = cancelledDate && cancelledDate >= startDate && cancelledDate <= endDate;
+
+        return createdInRange || completedInRange || cancelledInRange;
+      }
+
+      let dateToCheck: Date | null = null;
+
+      if (exportDateType === 'created') {
+        dateToCheck = repair.createdAt.toDate();
+      } else if (exportDateType === 'completed' && repair.completedAt) {
+        dateToCheck = repair.completedAt.toDate();
+      } else if (exportDateType === 'cancelled' && repair.cancelledAt) {
+        dateToCheck = repair.cancelledAt.toDate();
+      }
+
+      if (!dateToCheck) return false;
+      return dateToCheck >= startDate && dateToCheck <= endDate;
+    });
+
+    if (filteredData.length === 0) {
+      alert('No records found for the selected date range');
+      return;
+    }
+
+    // Create CSV content
+    const headers = [
+      'Order Number',
+      'Status',
+      'Submitter Name',
+      'Location',
+      'Description',
+      'Created Date',
+      'Completed Date',
+      'Cancelled Date',
+      'Follow-up Actions'
+    ];
+
+    const csvRows = [headers.join(',')];
+
+    filteredData.forEach(repair => {
+      const row = [
+        `"${repair.orderNumber}"`,
+        `"${repair.status}"`,
+        `"${repair.submitterName || ''}"`,
+        `"${repair.location || ''}"`,
+        `"${(repair.description || '').replace(/"/g, '""')}"`,
+        `"${format(repair.createdAt.toDate(), 'yyyy-MM-dd HH:mm')}"`,
+        repair.completedAt ? `"${format(repair.completedAt.toDate(), 'yyyy-MM-dd HH:mm')}"` : '""',
+        repair.cancelledAt ? `"${format(repair.cancelledAt.toDate(), 'yyyy-MM-dd HH:mm')}"` : '""',
+        `"${(repair.followUpActions || []).join('; ').replace(/"/g, '""')}"`
+      ];
+      csvRows.push(row.join(','));
+    });
+
+    // Download CSV
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `repair-requests-${exportDateType}-${exportStartDate}-to-${exportEndDate}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Close modal
+    setShowExportModal(false);
+    setExportStartDate('');
+    setExportEndDate('');
+  };
+
   const filteredRepairs = repairs.filter(repair => {
     if (filter === 'all') return true;
     return repair.status === filter;
@@ -106,6 +204,10 @@ export default function AdminDashboard() {
     <div className="admin-dashboard">
       <div className="dashboard-header">
         <h1>Repair Requests Dashboard</h1>
+        <button onClick={() => setShowExportModal(true)} className="btn-secondary">
+          <Download size={18} />
+          Export to CSV
+        </button>
       </div>
 
       <div className="filter-tabs">
@@ -288,6 +390,70 @@ export default function AdminDashboard() {
                   className="full-image"
                 />
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showExportModal && (
+        <div className="modal-overlay" onClick={() => setShowExportModal(false)}>
+          <div className="modal-content export-modal" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="modal-close"
+              onClick={() => setShowExportModal(false)}
+            >
+              ×
+            </button>
+            <h2>Export to CSV</h2>
+            <p className="modal-description">Select a date range and action type to export repair requests.</p>
+            
+            <div className="export-form">
+              <div className="form-group">
+                <label htmlFor="dateType">Filter by:</label>
+                <select
+                  id="dateType"
+                  value={exportDateType}
+                  onChange={(e) => setExportDateType(e.target.value as 'all' | 'created' | 'completed' | 'cancelled')}
+                  className="export-select"
+                >
+                  <option value="all">All (Created, Completed, or Cancelled)</option>
+                  <option value="created">Date Created</option>
+                  <option value="completed">Date Completed</option>
+                  <option value="cancelled">Date Cancelled</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="startDate">Start Date:</label>
+                <input
+                  id="startDate"
+                  type="date"
+                  value={exportStartDate}
+                  onChange={(e) => setExportStartDate(e.target.value)}
+                  className="export-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="endDate">End Date:</label>
+                <input
+                  id="endDate"
+                  type="date"
+                  value={exportEndDate}
+                  onChange={(e) => setExportEndDate(e.target.value)}
+                  className="export-input"
+                />
+              </div>
+
+              <div className="export-actions">
+                <button onClick={() => setShowExportModal(false)} className="btn-secondary">
+                  Cancel
+                </button>
+                <button onClick={exportToCSV} className="btn-primary">
+                  <Download size={18} />
+                  Download CSV
+                </button>
+              </div>
             </div>
           </div>
         </div>
