@@ -1,28 +1,58 @@
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth } from './firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { auth, db } from './firebase';
 import Login from './components/Login';
+import UserLogin from './components/UserLogin';
+import UserManagement from './components/UserManagement';
 import RepairForm from './components/RepairForm';
 import AdminDashboard from './components/AdminDashboard';
 import SubmissionSuccess from './components/SubmissionSuccess';
+import PasswordReset from './components/PasswordReset';
 import LanguageSelector from './components/LanguageSelector';
 import { useLanguage } from './contexts/LanguageContext';
+import { PortalUser } from './types';
 import './App.css';
 
 function App() {
   const { t } = useLanguage();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [currentUser, setCurrentUser] = useState<PortalUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [view, setView] = useState<'user' | 'admin'>('user');
+  const [view, setView] = useState<'user' | 'admin' | 'userManagement'>('user');
   const [submittedOrderNumber, setSubmittedOrderNumber] = useState<string | null>(null);
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setIsAdmin(!!user);
-      setIsLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        setView('admin');
+        // Check if user exists in users collection
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where('uid', '==', user.uid));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          // User exists in users collection - regular user
+          const userData = querySnapshot.docs[0].data() as PortalUser;
+          userData.id = querySnapshot.docs[0].id;
+          setCurrentUser(userData);
+          setIsAdmin(false);
+
+          // Check if first login
+          if (userData.isFirstLogin) {
+            setShowPasswordReset(true);
+          }
+        } else {
+          // User NOT in users collection - treat as admin
+          setIsAdmin(true);
+          setView('admin');
+          setCurrentUser(null);
+        }
+      } else {
+        setIsAdmin(false);
+        setCurrentUser(null);
       }
+      setIsLoading(false);
     });
 
     return () => unsubscribe();
@@ -32,9 +62,23 @@ function App() {
     try {
       await signOut(auth);
       setView('user');
+      setCurrentUser(null);
+      setSubmittedOrderNumber(null);
     } catch (error) {
       console.error('Logout error:', error);
     }
+  };
+
+  const handleUserLogin = (user: PortalUser) => {
+    setCurrentUser(user);
+    if (user.isFirstLogin) {
+      setShowPasswordReset(true);
+    }
+  };
+
+  const handlePasswordResetSuccess = () => {
+    setShowPasswordReset(false);
+    setCurrentUser(prev => prev ? { ...prev, isFirstLogin: false } : null);
   };
 
   const handleSubmissionSuccess = (orderNumber: string) => {
@@ -70,7 +114,12 @@ function App() {
         </div>
         <div className="nav-links">
           <LanguageSelector />
-          {!isAdmin ? (
+          {currentUser && (
+            <span className="user-info">
+              👤 {currentUser.username}
+            </span>
+          )}
+          {!isAdmin && !currentUser ? (
             <>
               <button
                 className={view === 'user' ? 'nav-link active' : 'nav-link'}
@@ -85,6 +134,28 @@ function App() {
               <button
                 className={view === 'admin' ? 'nav-link active' : 'nav-link'}
                 onClick={() => setView('admin')}
+                title={t('app.adminLogin')}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  <path d="M9 12l2 2 4-4"/>
+                </svg>
+                <span className="nav-link-text">{t('app.adminLogin')}</span>
+              </button>
+            </>
+          ) : currentUser ? (
+            <button onClick={handleLogout} className="btn-secondary" title={t('app.logout')}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+              </svg>
+              <span className="btn-text">{t('app.logout')}</span>
+            </button>
+          ) : null}
+          {isAdmin && (
+            <>
+              <button
+                className={view === 'admin' ? 'nav-link active' : 'nav-link'}
+                onClick={() => setView('admin')}
                 title={t('app.adminPanel')}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -93,32 +164,54 @@ function App() {
                 </svg>
                 <span className="nav-link-text">{t('app.adminPanel')}</span>
               </button>
+              <button
+                className={view === 'userManagement' ? 'nav-link active' : 'nav-link'}
+                onClick={() => setView('userManagement')}
+                title={t('app.userManagement')}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <span className="nav-link-text">{t('app.userManagement')}</span>
+              </button>
+              <button onClick={handleLogout} className="btn-secondary" title={t('app.logout')}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+                </svg>
+                <span className="btn-text">{t('app.logout')}</span>
+              </button>
             </>
-          ) : (
-            <button onClick={handleLogout} className="btn-secondary" title={t('app.logout')}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
-              </svg>
-              <span className="btn-text">{t('app.logout')}</span>
-            </button>
           )}
         </div>
       </nav>
 
       <main className="main-content">
-        {view === 'user' ? (
+        {showPasswordReset && currentUser?.id && (
+          <PasswordReset userId={currentUser.id} onSuccess={handlePasswordResetSuccess} />
+        )}
+
+        {isAdmin ? (
+          view === 'userManagement' ? (
+            <UserManagement />
+          ) : (
+            <AdminDashboard />
+          )
+        ) : currentUser ? (
           submittedOrderNumber ? (
             <SubmissionSuccess 
               orderNumber={submittedOrderNumber} 
               onSubmitAnother={handleSubmitAnother}
             />
           ) : (
-            <RepairForm onSuccess={handleSubmissionSuccess} />
+            <RepairForm user={currentUser} onSuccess={handleSubmissionSuccess} />
           )
-        ) : isAdmin ? (
-          <AdminDashboard />
-        ) : (
+        ) : view === 'admin' ? (
           <Login onLoginSuccess={() => setView('admin')} />
+        ) : (
+          <UserLogin onLoginSuccess={handleUserLogin} />
         )}
       </main>
 

@@ -3,15 +3,17 @@ import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../firebase';
 import { useLanguage } from '../contexts/LanguageContext';
+import { PortalUser } from '../types';
 
 interface RepairFormProps {
+  user: PortalUser;
   onSuccess: (orderNumber: string) => void;
 }
 
-export default function RepairForm({ onSuccess }: RepairFormProps) {
+export default function RepairForm({ user, onSuccess }: RepairFormProps) {
   const { t } = useLanguage();
   const [description, setDescription] = useState('');
-  const [submitterName, setSubmitterName] = useState('');
+  const [submitterName, setSubmitterName] = useState(user.username);
   const [location, setLocation] = useState('');
   const [images, setImages] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
@@ -53,6 +55,8 @@ export default function RepairForm({ onSuccess }: RepairFormProps) {
         orderNumber,
         description,
         submitterName,
+        submitterEmail: user.email,
+        submitterUid: user.uid,
         location,
         imageUrls,
         status: 'pending',
