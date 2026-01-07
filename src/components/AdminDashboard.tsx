@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, doc, updateDoc, Timestamp, orderBy } from 'firebase/firestore';
-import { signOut } from 'firebase/auth';
-import { db, auth } from '../firebase';
+import { db } from '../firebase';
 import { RepairRequest } from '../types';
 import { format } from 'date-fns';
 
@@ -50,14 +49,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
-
   const filteredRepairs = repairs.filter(repair => {
     if (filter === 'all') return true;
     return repair.status === filter;
@@ -71,9 +62,6 @@ export default function AdminDashboard() {
     <div className="admin-dashboard">
       <div className="dashboard-header">
         <h1>Repair Requests Dashboard</h1>
-        <button onClick={handleLogout} className="btn-secondary">
-          Logout
-        </button>
       </div>
 
       <div className="filter-tabs">

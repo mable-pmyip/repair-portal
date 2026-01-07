@@ -118,7 +118,7 @@ export default function RepairForm() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="images">Upload Images (Optional)</label>
+            <label htmlFor="images">Upload Images (Not working currently 😬)</label>
             <input
               id="images"
               type="file"
