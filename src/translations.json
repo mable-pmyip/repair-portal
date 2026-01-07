@@ -3,10 +3,10 @@
     "app": {
       "title": "Repair Portal",
       "loading": "Loading...",
-      "submitRequest": "Submit Request",
+      "userLoginButton": "User Login",
       "adminPanel": "Admin Panel",
       "adminLogin": "Admin Login",
-      "userManagement": "User Management",
+      "userManagement": "Manage User",
       "logout": "Logout",
       "footer": "© 2026 Repair Portal. All rights reserved."
     },
@@ -88,7 +88,7 @@
       "traditionalChinese": "繁體中文"
     },
     "userManagement": {
-      "title": "User Management",
+      "title": "Manage User",
       "addUser": "Add User",
       "addNewUser": "Add New User",
       "editUser": "Edit User",
@@ -129,7 +129,8 @@
       "confirmDeleteUser": "Are you sure you want to delete this user? This action cannot be undone.",
       "confirmResetPassword": "Are you sure you want to reset this user's password? The user will need to change their password on next login.",
       "defaultPasswordInfo": "Default password",
-      "firstLoginInfo": "User will be required to change password on first login."
+      "firstLoginInfo": "User will be required to change password on first login.",
+      "userAddedPleaseLogin": "User added successfully. You will need to log in again."
     },
     "userLogin": {
       "title": "User Login",
@@ -177,7 +178,7 @@
     "app": {
       "title": "維修申請系統",
       "loading": "載入中...",
-      "submitRequest": "提交申請",
+      "userLoginButton": "用戶登入",
       "adminPanel": "管理員面板",
       "adminLogin": "管理員登入",
       "userManagement": "用戶管理",
@@ -303,7 +304,8 @@
       "confirmDeleteUser": "確定要刪除此用戶嗎？此操作無法撤銷。",
       "confirmResetPassword": "確定要重置此用戶的密碼嗎？用戶將需要在下次登入時更改密碼。",
       "defaultPasswordInfo": "預設密碼",
-      "firstLoginInfo": "用戶首次登入時需要更改密碼。"
+      "firstLoginInfo": "用戶將在首次登入時被要求更改密碼。",
+      "userAddedPleaseLogin": "用戶已成功添加。您需要重新登入。"
     },
     "userLogin": {
       "title": "用戶登入",

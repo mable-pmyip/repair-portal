@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, doc, updateDoc, deleteDoc, addDoc, Timestamp } from 'firebase/firestore';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { collection, query, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { PortalUser, DEFAULT_PASSWORD } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { format } from 'date-fns';
-import { UserPlus, Edit2, Trash2, Lock, UserX, UserCheck } from 'lucide-react';
+import { UserPlus, Edit2, Trash2, Lock, UserX, UserCheck, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import ConfirmModal from './ConfirmModal';
 
 export default function UserManagement() {
   const { t } = useLanguage();
@@ -20,6 +20,14 @@ export default function UserManagement() {
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
 
   useEffect(() => {
     const q = query(collection(db, 'users'));
@@ -43,27 +51,25 @@ export default function UserManagement() {
     setLoading(true);
 
     try {
-      // Generate email from username
-      const generatedEmail = `${formData.username.toLowerCase().replace(/\s+/g, '')}@repairportal.com`;
-      
-      // Create user in Firebase Auth with default password
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        generatedEmail,
-        DEFAULT_PASSWORD
-      );
-
-      // Add user to Firestore
-      await addDoc(collection(db, 'users'), {
-        uid: userCredential.user.uid,
-        email: generatedEmail,
-        username: formData.username,
-        department: formData.department,
-        status: 'active',
-        isFirstLogin: true,
-        createdAt: Timestamp.now(),
-        createdBy: auth.currentUser?.email || 'admin',
+      // Call backend API to create user
+      const response = await fetch('/api/create-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          department: formData.department,
+          password: DEFAULT_PASSWORD,
+          createdBy: auth.currentUser?.email || 'admin',
+        }),
       });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create user');
+      }
 
       setSuccess(t('userManagement.userAddedSuccess'));
       setShowAddModal(false);
@@ -118,31 +124,43 @@ export default function UserManagement() {
   };
 
   const handleResetPassword = async (userId: string) => {
-    if (!confirm(t('userManagement.confirmResetPassword'))) return;
-
-    try {
-      const userRef = doc(db, 'users', userId);
-      await updateDoc(userRef, {
-        isFirstLogin: true,
-      });
-      setSuccess(t('userManagement.passwordResetSuccess'));
-    } catch (err: any) {
-      setError(err.message || t('userManagement.errorResettingPassword'));
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Reset Password',
+      message: t('userManagement.confirmResetPassword'),
+      onConfirm: async () => {
+        setConfirmModal({ ...confirmModal, isOpen: false });
+        try {
+          const userRef = doc(db, 'users', userId);
+          await updateDoc(userRef, {
+            isFirstLogin: true,
+          });
+          setSuccess(t('userManagement.passwordResetSuccess'));
+        } catch (err: any) {
+          setError(err.message || t('userManagement.errorResettingPassword'));
+        }
+      }
+    });
   };
 
   const handleDeleteUser = async (user: PortalUser) => {
-    if (!confirm(t('userManagement.confirmDeleteUser'))) return;
-
-    try {
-      // Delete from Firestore
-      if (user.id) {
-        await deleteDoc(doc(db, 'users', user.id));
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete User',
+      message: t('userManagement.confirmDeleteUser'),
+      onConfirm: async () => {
+        setConfirmModal({ ...confirmModal, isOpen: false });
+        try {
+          // Delete from Firestore
+          if (user.id) {
+            await deleteDoc(doc(db, 'users', user.id));
+          }
+          setSuccess(t('userManagement.userDeletedSuccess'));
+        } catch (err: any) {
+          setError(err.message || t('userManagement.errorDeletingUser'));
+        }
       }
-      setSuccess(t('userManagement.userDeletedSuccess'));
-    } catch (err: any) {
-      setError(err.message || t('userManagement.errorDeletingUser'));
-    }
+    });
   };
 
   const openEditModal = (user: PortalUser) => {
@@ -154,14 +172,51 @@ export default function UserManagement() {
     setShowEditModal(true);
   };
 
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortedUsers = [...users].sort((a, b) => {
+    if (!sortColumn) return 0;
+
+    let aValue: any = a[sortColumn as keyof PortalUser];
+    let bValue: any = b[sortColumn as keyof PortalUser];
+
+    // Handle null/undefined
+    if (!aValue && !bValue) return 0;
+    if (!aValue) return 1;
+    if (!bValue) return -1;
+
+    // Handle Timestamp objects
+    if (aValue?.toDate) aValue = aValue.toDate().getTime();
+    if (bValue?.toDate) bValue = bValue.toDate().getTime();
+
+    // String comparison (case-insensitive)
+    if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+    if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+
+    const comparison = aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+    return sortDirection === 'asc' ? comparison : -comparison;
+  });
+
+  const SortIcon = ({ column }: { column: string }) => {
+    if (sortColumn !== column) return <ArrowUpDown size={14} />;
+    return sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />;
+  };
+
   if (loading && users.length === 0) {
     return <div className="loading">{t('userManagement.loadingUsers')}</div>;
   }
 
   return (
     <div className="user-management">
-      <div className="user-management-header">
-        <h2>{t('userManagement.title')}</h2>
+      <div className="dashboard-header">
+        <h1>{t('userManagement.title')}</h1>
         <button onClick={() => setShowAddModal(true)} className="btn-primary">
           <UserPlus size={18} />
           {t('userManagement.addUser')}
@@ -186,24 +241,42 @@ export default function UserManagement() {
         <table className="users-table">
           <thead>
             <tr>
-              <th>{t('userManagement.username')}</th>
-              <th>{t('userManagement.department')}</th>
-              <th>{t('userManagement.status')}</th>
-              <th>{t('userManagement.firstLogin')}</th>
-              <th>{t('userManagement.createdAt')}</th>
-              <th>{t('userManagement.lastLogin')}</th>
+              <th onClick={() => handleSort('username')} className="sortable-header">
+                <span>{t('userManagement.username')}</span>
+                <SortIcon column="username" />
+              </th>
+              <th onClick={() => handleSort('department')} className="sortable-header">
+                <span>{t('userManagement.department')}</span>
+                <SortIcon column="department" />
+              </th>
+              <th onClick={() => handleSort('status')} className="sortable-header">
+                <span>{t('userManagement.status')}</span>
+                <SortIcon column="status" />
+              </th>
+              <th onClick={() => handleSort('isFirstLogin')} className="sortable-header">
+                <span>{t('userManagement.firstLogin')}</span>
+                <SortIcon column="isFirstLogin" />
+              </th>
+              <th onClick={() => handleSort('createdAt')} className="sortable-header">
+                <span>{t('userManagement.createdAt')}</span>
+                <SortIcon column="createdAt" />
+              </th>
+              <th onClick={() => handleSort('lastLogin')} className="sortable-header">
+                <span>{t('userManagement.lastLogin')}</span>
+                <SortIcon column="lastLogin" />
+              </th>
               <th>{t('userManagement.actions')}</th>
             </tr>
           </thead>
           <tbody>
-            {users.length === 0 ? (
+            {sortedUsers.length === 0 ? (
               <tr>
                 <td colSpan={7} className="no-data">
                   {t('userManagement.noUsers')}
                 </td>
               </tr>
             ) : (
-              users.map((user) => (
+              sortedUsers.map((user) => (
                 <tr key={user.id}>
                   <td>{user.username}</td>
                   <td>{user.department}</td>
@@ -357,6 +430,17 @@ export default function UserManagement() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText="OK"
+        cancelText="Cancel"
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        variant="danger"
+      />
     </div>
   );
 }

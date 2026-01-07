@@ -1,31 +1,36 @@
 import { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from './firebase';
-import Login from './components/Login';
-import UserLogin from './components/UserLogin';
 import UserManagement from './components/UserManagement';
-import RepairForm from './components/RepairForm';
 import AdminDashboard from './components/AdminDashboard';
-import SubmissionSuccess from './components/SubmissionSuccess';
 import PasswordReset from './components/PasswordReset';
 import LanguageSelector from './components/LanguageSelector';
+import HomePage from './routes/HomePage';
+import AdminHomePage from './routes/AdminHomePage';
+import AdminLoginPage from './routes/AdminLoginPage';
+import UserLoginPage from './routes/UserLoginPage';
+import SubmitRequestPage from './routes/SubmitRequestPage';
+import ProtectedRoute from './routes/ProtectedRoute';
 import { useLanguage } from './contexts/LanguageContext';
 import { PortalUser } from './types';
 import './App.css';
 
-function App() {
+function AppContent() {
   const { t } = useLanguage();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentUser, setCurrentUser] = useState<PortalUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [view, setView] = useState<'user' | 'admin' | 'userManagement'>('user');
-  const [submittedOrderNumber, setSubmittedOrderNumber] = useState<string | null>(null);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [showPasswordReset, setShowPasswordReset] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
+        setIsAuthenticating(true);
         // Check if user exists in users collection
         const usersRef = collection(db, 'users');
         const q = query(usersRef, where('uid', '==', user.uid));
@@ -38,16 +43,21 @@ function App() {
           setCurrentUser(userData);
           setIsAdmin(false);
 
-          // Check if first login
-          if (userData.isFirstLogin) {
+          // Check if first login - only show password reset if we're on a user-facing route
+          if (userData.isFirstLogin && !location.pathname.startsWith('/admin')) {
             setShowPasswordReset(true);
+          } else if (location.pathname === '/user-login') {
+            navigate('/submit');
           }
         } else {
           // User NOT in users collection - treat as admin
           setIsAdmin(true);
-          setView('admin');
           setCurrentUser(null);
+          if (location.pathname === '/admin-login') {
+            navigate('/admin');
+          }
         }
+        setIsAuthenticating(false);
       } else {
         setIsAdmin(false);
         setCurrentUser(null);
@@ -56,14 +66,14 @@ function App() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [location.pathname, navigate]);
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      setView('user');
       setCurrentUser(null);
-      setSubmittedOrderNumber(null);
+      setIsAdmin(false);
+      navigate('/');
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -79,14 +89,6 @@ function App() {
   const handlePasswordResetSuccess = () => {
     setShowPasswordReset(false);
     setCurrentUser(prev => prev ? { ...prev, isFirstLogin: false } : null);
-  };
-
-  const handleSubmissionSuccess = (orderNumber: string) => {
-    setSubmittedOrderNumber(orderNumber);
-  };
-
-  const handleSubmitAnother = () => {
-    setSubmittedOrderNumber(null);
   };
 
   if (isLoading) {
@@ -110,10 +112,11 @@ function App() {
           </a>
         </div>
         <div className="nav-brand">
-          <h1>🔧 {t('app.title')}</h1>
+          <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <h1>🔧 {t('app.title')}</h1>
+          </Link>
         </div>
         <div className="nav-links">
-          <LanguageSelector />
           {currentUser && (
             <span className="user-info">
               👤 {currentUser.username}
@@ -121,19 +124,20 @@ function App() {
           )}
           {!isAdmin && !currentUser ? (
             <>
-              <button
-                className={view === 'user' ? 'nav-link active' : 'nav-link'}
-                onClick={() => setView('user')}
-                title={t('app.submitRequest')}
+              <Link 
+                to="/user-login"
+                className={location.pathname === '/user-login' ? 'nav-link active' : 'nav-link'}
+                title={t('app.userLoginButton')}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 5v14M5 12h14"/>
+                  <circle cx="12" cy="8" r="5"/>
+                  <path d="M20 21a8 8 0 1 0-16 0"/>
                 </svg>
-                <span className="nav-link-text">{t('app.submitRequest')}</span>
-              </button>
-              <button
-                className={view === 'admin' ? 'nav-link active' : 'nav-link'}
-                onClick={() => setView('admin')}
+                <span className="nav-link-text">{t('app.userLoginButton')}</span>
+              </Link>
+              <Link 
+                to="/admin-login"
+                className={location.pathname === '/admin-login' ? 'nav-link active' : 'nav-link'}
                 title={t('app.adminLogin')}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -141,7 +145,7 @@ function App() {
                   <path d="M9 12l2 2 4-4"/>
                 </svg>
                 <span className="nav-link-text">{t('app.adminLogin')}</span>
-              </button>
+              </Link>
             </>
           ) : currentUser ? (
             <button onClick={handleLogout} className="btn-secondary" title={t('app.logout')}>
@@ -153,9 +157,9 @@ function App() {
           ) : null}
           {isAdmin && (
             <>
-              <button
-                className={view === 'admin' ? 'nav-link active' : 'nav-link'}
-                onClick={() => setView('admin')}
+              <Link
+                to="/admin/dashboard"
+                className={location.pathname.startsWith('/admin/dashboard') ? 'nav-link active' : 'nav-link'}
                 title={t('app.adminPanel')}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -163,10 +167,10 @@ function App() {
                   <path d="M9 12l2 2 4-4"/>
                 </svg>
                 <span className="nav-link-text">{t('app.adminPanel')}</span>
-              </button>
-              <button
-                className={view === 'userManagement' ? 'nav-link active' : 'nav-link'}
-                onClick={() => setView('userManagement')}
+              </Link>
+              <Link
+                to="/admin/users"
+                className={location.pathname.startsWith('/admin/users') ? 'nav-link active' : 'nav-link'}
                 title={t('app.userManagement')}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -176,7 +180,7 @@ function App() {
                   <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                 </svg>
                 <span className="nav-link-text">{t('app.userManagement')}</span>
-              </button>
+              </Link>
               <button onClick={handleLogout} className="btn-secondary" title={t('app.logout')}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
@@ -189,36 +193,71 @@ function App() {
       </nav>
 
       <main className="main-content">
+        {isAuthenticating && (
+          <div className="auth-loading-overlay">
+            <div className="auth-loading-spinner">
+              <div className="spinner-circle"></div>
+              <p>Loading...</p>
+            </div>
+          </div>
+        )}
+
         {showPasswordReset && currentUser?.id && (
           <PasswordReset userId={currentUser.id} onSuccess={handlePasswordResetSuccess} />
         )}
 
-        {isAdmin ? (
-          view === 'userManagement' ? (
-            <UserManagement />
-          ) : (
-            <AdminDashboard />
-          )
-        ) : currentUser ? (
-          submittedOrderNumber ? (
-            <SubmissionSuccess 
-              orderNumber={submittedOrderNumber} 
-              onSubmitAnother={handleSubmitAnother}
-            />
-          ) : (
-            <RepairForm user={currentUser} onSuccess={handleSubmissionSuccess} />
-          )
-        ) : view === 'admin' ? (
-          <Login onLoginSuccess={() => setView('admin')} />
-        ) : (
-          <UserLogin onLoginSuccess={handleUserLogin} />
-        )}
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/user-login" element={<UserLoginPage onLoginSuccess={handleUserLogin} />} />
+          <Route path="/admin-login" element={<AdminLoginPage />} />
+          <Route 
+            path="/submit" 
+            element={
+              <ProtectedRoute isAllowed={!!currentUser} redirectTo="/user-login">
+                <SubmitRequestPage user={currentUser!} />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedRoute isAllowed={isAdmin} redirectTo="/admin-login">
+                <AdminHomePage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/dashboard" 
+            element={
+              <ProtectedRoute isAllowed={isAdmin} redirectTo="/admin-login">
+                <AdminDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/users" 
+            element={
+              <ProtectedRoute isAllowed={isAdmin} redirectTo="/admin-login">
+                <UserManagement />
+              </ProtectedRoute>
+            } 
+          />
+        </Routes>
       </main>
 
       <footer className="footer">
         <p>{t('app.footer')}</p>
+        <LanguageSelector />
       </footer>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   );
 }
 
