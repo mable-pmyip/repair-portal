@@ -42,7 +42,6 @@
     },
     "adminDashboard": {
       "title": "Repair Requests Dashboard",
-      "subtitle": "Manage and track all repair requests",
       "exportCSV": "Export to CSV",
       "searchPlaceholder": "Search by order number, description, location, submitter...",
       "gridView": "Grid View",
@@ -173,7 +172,6 @@
     },
     "myRequests": {
       "title": "My Repair Requests",
-      "subtitle": "Track the status of your submitted requests",
       "searchPlaceholder": "Search by order number, description, location...",
       "noRequests": "No requests found",
       "noRequestsDescription": "You haven't submitted any repair requests yet. Click 'Submit Repair Request' to create one."
@@ -247,7 +245,6 @@
     },
     "adminDashboard": {
       "title": "維修申請管理面板",
-      "subtitle": "管理和追蹤所有維修申請",
       "exportCSV": "匯出至 CSV",
       "searchPlaceholder": "搜尋訂單編號、描述、位置、提交者...",
       "gridView": "網格視圖",
@@ -378,7 +375,6 @@
     },
     "myRequests": {
       "title": "我的維修申請",
-      "subtitle": "追蹤您提交的申請狀態",
       "searchPlaceholder": "搜尋訂單編號、描述、位置...",
       "noRequests": "未找到申請",
       "noRequestsDescription": "您尚未提交任何維修申請。點擊「提交維修申請」來建立一個。"

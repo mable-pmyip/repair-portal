@@ -673,10 +673,19 @@ button {
   font-weight: 500;
 }
 
+/* Search and View Controls Container */
+.search-and-view-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
 /* Search Box */
 .search-box {
   position: relative;
-  margin-bottom: 1.5rem;
+  flex: 1;
   max-width: 600px;
 }
 
@@ -731,13 +740,6 @@ button {
 .search-clear:hover {
   background-color: var(--border-color);
   color: var(--text-primary);
-}
-
-/* View Controls */
-.view-controls {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 1.5rem;
 }
 
 .view-toggle {

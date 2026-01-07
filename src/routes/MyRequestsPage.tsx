@@ -144,7 +144,6 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
     <div className="my-requests-page">
       <div className="page-header">
         <h1>{t('myRequests.title')}</h1>
-        <p>{t('myRequests.subtitle')}</p>
       </div>
 
       {error && (
@@ -157,27 +156,27 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
         </div>
       )}
 
-      <div className="search-box">
-        <Search size={20} className="search-icon" />
-        <input
-          type="text"
-          placeholder={t('myRequests.searchPlaceholder')}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="search-input"
-        />
-        {searchQuery && (
-          <button
-            onClick={() => setSearchQuery('')}
-            className="search-clear"
-            aria-label="Clear search"
-          >
-            ×
-          </button>
-        )}
-      </div>
+      <div className="search-and-view-controls">
+        <div className="search-box">
+          <Search size={20} className="search-icon" />
+          <input
+            type="text"
+            placeholder={t('myRequests.searchPlaceholder')}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="search-input"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="search-clear"
+              aria-label="Clear search"
+            >
+              ×
+            </button>
+          )}
+        </div>
 
-      <div className="view-controls">
         <div className="view-toggle">
           <button
             className={viewMode === 'grid' ? 'view-btn active' : 'view-btn'}

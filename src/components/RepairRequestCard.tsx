@@ -15,7 +15,6 @@ interface RepairRequestCardProps {
   onFollowUpActionChange?: (value: string) => void;
   onAddFollowUpAction?: () => void;
   onMarkAsCompleted?: () => void;
-  onMarkAsPending?: () => void;
   onCancelRepair?: () => void;
   onImageClick?: (request: RepairRequest) => void;
 }
@@ -32,7 +31,6 @@ export default function RepairRequestCard({
   onFollowUpActionChange,
   onAddFollowUpAction,
   onMarkAsCompleted,
-  onMarkAsPending,
   onCancelRepair,
   onImageClick,
 }: RepairRequestCardProps) {
@@ -161,21 +159,7 @@ export default function RepairRequestCard({
                 </button>
               </div>
             </>
-          ) : request.status === 'completed' ? (
-            <button
-              onClick={onMarkAsPending}
-              className="btn-warning"
-            >
-              {t('adminDashboard.reopen')}
-            </button>
-          ) : (
-            <button
-              onClick={onMarkAsPending}
-              className="btn-warning"
-            >
-              {t('adminDashboard.reopen')}
-            </button>
-          )}
+          ) : null}
         </div>
       )}
     </div>
