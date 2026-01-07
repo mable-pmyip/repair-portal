@@ -3,8 +3,9 @@ import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestor
 import { db } from '../firebase';
 import { useLanguage } from '../contexts/LanguageContext';
 import { PortalUser, RepairRequest } from '../types';
-import { Clock, CheckCircle, XCircle, List, FileText, Search } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, List, FileText, Search, Grid, Table as TableIcon } from 'lucide-react';
 import RepairRequestCard from '../components/RepairRequestCard';
+import { format } from 'date-fns';
 
 interface MyRequestsPageProps {
   user: PortalUser;
@@ -17,6 +18,10 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed' | 'cancelled'>('all');
   const [expandedDescriptions, setExpandedDescriptions] = useState<{ [key: string]: boolean }>({});
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [sortBy, setSortBy] = useState<'createdAt' | 'status' | 'orderNumber' | 'location'>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [selectedTableRequest, setSelectedTableRequest] = useState<RepairRequest | null>(null);
 
   useEffect(() => {
     console.log('MyRequestsPage - user.uid:', user.uid);
@@ -96,6 +101,45 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
     return statusMatch && searchMatch;
   });
 
+  const handleSort = (field: typeof sortBy) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('desc');
+    }
+  };
+
+  const sortedRequests = [...filteredRequests].sort((a, b) => {
+    let aValue: any;
+    let bValue: any;
+
+    switch (sortBy) {
+      case 'createdAt':
+        aValue = a.createdAt.toDate().getTime();
+        bValue = b.createdAt.toDate().getTime();
+        break;
+      case 'status':
+        aValue = a.status;
+        bValue = b.status;
+        break;
+      case 'orderNumber':
+        aValue = a.orderNumber;
+        bValue = b.orderNumber;
+        break;
+      case 'location':
+        aValue = a.location;
+        bValue = b.location;
+        break;
+      default:
+        return 0;
+    }
+
+    if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+    if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+    return 0;
+  });
+
   return (
     <div className="my-requests-page">
       <div className="page-header">
@@ -131,6 +175,25 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
             ×
           </button>
         )}
+      </div>
+
+      <div className="view-controls">
+        <div className="view-toggle">
+          <button
+            className={viewMode === 'grid' ? 'view-btn active' : 'view-btn'}
+            onClick={() => setViewMode('grid')}
+            title={t('adminDashboard.gridView')}
+          >
+            <Grid size={18} />
+          </button>
+          <button
+            className={viewMode === 'table' ? 'view-btn active' : 'view-btn'}
+            onClick={() => setViewMode('table')}
+            title={t('adminDashboard.tableView')}
+          >
+            <TableIcon size={18} />
+          </button>
+        </div>
       </div>
 
       <div className="filter-tabs">
@@ -200,15 +263,15 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
         </button>
       </div>
 
-      {filteredRequests.length === 0 ? (
+      {sortedRequests.length === 0 ? (
         <div className="empty-state">
           <FileText size={64} />
           <h3>{t('myRequests.noRequests')}</h3>
           <p>{t('myRequests.noRequestsDescription')}</p>
         </div>
-      ) : (
+      ) : viewMode === 'grid' ? (
         <div className="requests-grid">
-          {filteredRequests.map((request) => (
+          {sortedRequests.map((request) => (
             <RepairRequestCard
               key={request.id}
               request={request}
@@ -221,6 +284,67 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
               onImageClick={(req) => window.open(req.imageUrls[0], '_blank')}
             />
           ))}
+        </div>
+      ) : (
+        <div className="table-container">
+          <table className="requests-table">
+            <thead>
+              <tr>
+                <th onClick={() => handleSort('orderNumber')} className="sortable">
+                  {t('adminDashboard.requestNumber')} {sortBy === 'orderNumber' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th onClick={() => handleSort('status')} className="sortable">
+                  {t('adminDashboard.status')} {sortBy === 'status' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th onClick={() => handleSort('location')} className="sortable">
+                  {t('repairForm.location')} {sortBy === 'location' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th onClick={() => handleSort('createdAt')} className="sortable">
+                  {t('adminDashboard.submittedOn')} {sortBy === 'createdAt' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedRequests.map((request) => (
+                <tr key={request.id} onClick={() => setSelectedTableRequest(request)} className="clickable-row">
+                  <td className="request-number">{request.orderNumber}</td>
+                  <td>
+                    <span className={`status-badge ${request.status}`}>
+                      {request.status === 'pending' && <Clock size={14} />}
+                      {request.status === 'completed' && <CheckCircle size={14} />}
+                      {request.status === 'cancelled' && <XCircle size={14} />}
+                      {t(`adminDashboard.${request.status}`)}
+                    </span>
+                  </td>
+                  <td>{request.location}</td>
+                  <td>{format(request.createdAt.toDate(), 'MMM dd, yyyy HH:mm')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {selectedTableRequest && (
+        <div className="modal-overlay" onClick={() => setSelectedTableRequest(null)}>
+          <div className="modal-content modal-card-content" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="modal-close"
+              onClick={() => setSelectedTableRequest(null)}
+            >
+              ×
+            </button>
+            <RepairRequestCard
+              request={selectedTableRequest}
+              isExpanded={true}
+              onToggleDescription={() => {}}
+              truncateText={truncateText}
+              showSubmitterInfo={false}
+              showFollowUpActions={false}
+              showAdminActions={false}
+              onImageClick={() => {}}
+            />
+          </div>
         </div>
       )}
     </div>

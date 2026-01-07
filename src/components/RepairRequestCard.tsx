@@ -173,7 +173,7 @@ export default function RepairRequestCard({
               onClick={onMarkAsPending}
               className="btn-warning"
             >
-              {t('adminDashboard.restoreToPending')}
+              {t('adminDashboard.reopen')}
             </button>
           )}
         </div>

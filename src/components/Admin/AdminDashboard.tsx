@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, doc, updateDoc, Timestamp, orderBy } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { RepairRequest } from '../../types';
-import { Clock, CheckCircle, XCircle, List, Download, FileText, Search } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, List, Download, FileText, Search, Grid, Table as TableIcon } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import RepairRequestCard from '../RepairRequestCard';
 import ActionReasonModal from '../ActionReasonModal';
@@ -21,6 +21,10 @@ export default function AdminDashboard() {
   const [exportDateType, setExportDateType] = useState<'all' | 'created' | 'completed' | 'cancelled'>('all');
   const [actionModal, setActionModal] = useState<{ type: 'complete' | 'cancel' | null; repairId: string | null }>({ type: null, repairId: null });
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [sortBy, setSortBy] = useState<'createdAt' | 'status' | 'orderNumber' | 'location' | 'submitterName'>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [selectedTableRepair, setSelectedTableRepair] = useState<RepairRequest | null>(null);
 
   useEffect(() => {
     const q = query(collection(db, 'repairs'), orderBy('createdAt', 'desc'));
@@ -234,6 +238,49 @@ export default function AdminDashboard() {
     return statusMatch && searchMatch;
   });
 
+  const handleSort = (field: typeof sortBy) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('desc');
+    }
+  };
+
+  const sortedRepairs = [...filteredRepairs].sort((a, b) => {
+    let aValue: any;
+    let bValue: any;
+
+    switch (sortBy) {
+      case 'createdAt':
+        aValue = a.createdAt.toDate().getTime();
+        bValue = b.createdAt.toDate().getTime();
+        break;
+      case 'status':
+        aValue = a.status;
+        bValue = b.status;
+        break;
+      case 'orderNumber':
+        aValue = a.orderNumber;
+        bValue = b.orderNumber;
+        break;
+      case 'location':
+        aValue = a.location;
+        bValue = b.location;
+        break;
+      case 'submitterName':
+        aValue = a.submitterName || '';
+        bValue = b.submitterName || '';
+        break;
+      default:
+        return 0;
+    }
+
+    if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+    if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+    return 0;
+  });
+
   return (
     <div className="my-requests-page admin-dashboard">
       <div className="page-header">
@@ -265,6 +312,25 @@ export default function AdminDashboard() {
             ×
           </button>
         )}
+      </div>
+
+      <div className="view-controls">
+        <div className="view-toggle">
+          <button
+            className={viewMode === 'grid' ? 'view-btn active' : 'view-btn'}
+            onClick={() => setViewMode('grid')}
+            title={t('adminDashboard.gridView')}
+          >
+            <Grid size={18} />
+          </button>
+          <button
+            className={viewMode === 'table' ? 'view-btn active' : 'view-btn'}
+            onClick={() => setViewMode('table')}
+            title={t('adminDashboard.tableView')}
+          >
+            <TableIcon size={18} />
+          </button>
+        </div>
       </div>
 
       <div className="filter-tabs">
@@ -337,15 +403,15 @@ export default function AdminDashboard() {
         </button>
       </div>
 
-      {filteredRepairs.length === 0 ? (
+      {sortedRepairs.length === 0 ? (
         <div className="empty-state">
           <FileText size={64} />
           <h3>{t('adminDashboard.noRepairs')}</h3>
           <p>{t('adminDashboard.noRepairsDescription')}</p>
         </div>
-      ) : (
+      ) : viewMode === 'grid' ? (
         <div className="requests-grid">
-          {filteredRepairs.map((repair) => (
+          {sortedRepairs.map((repair) => (
             <RepairRequestCard
               key={repair.id}
               request={repair}
@@ -364,6 +430,79 @@ export default function AdminDashboard() {
               onImageClick={setSelectedRepair}
             />
           ))}
+        </div>
+      ) : (
+        <div className="table-container">
+          <table className="requests-table">
+            <thead>
+              <tr>
+                <th onClick={() => handleSort('orderNumber')} className="sortable">
+                  {t('adminDashboard.requestNumber')} {sortBy === 'orderNumber' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th onClick={() => handleSort('status')} className="sortable">
+                  {t('adminDashboard.status')} {sortBy === 'status' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th onClick={() => handleSort('submitterName')} className="sortable">
+                  {t('adminDashboard.submittedBy')} {sortBy === 'submitterName' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th onClick={() => handleSort('location')} className="sortable">
+                  {t('repairForm.location')} {sortBy === 'location' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th onClick={() => handleSort('createdAt')} className="sortable">
+                  {t('adminDashboard.submittedOn')} {sortBy === 'createdAt' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th>{t('adminDashboard.actions')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedRepairs.map((repair) => (
+                <tr key={repair.id} onClick={() => setSelectedTableRepair(repair)} className="clickable-row">
+                  <td className="request-number">{repair.orderNumber}</td>
+                  <td>
+                    <span className={`status-badge ${repair.status}`}>
+                      {repair.status === 'pending' && <Clock size={14} />}
+                      {repair.status === 'completed' && <CheckCircle size={14} />}
+                      {repair.status === 'cancelled' && <XCircle size={14} />}
+                      {t(`adminDashboard.${repair.status}`)}
+                    </span>
+                  </td>
+                  <td>{repair.submitterName}</td>
+                  <td>{repair.location}</td>
+                  <td>{format(repair.createdAt.toDate(), 'MMM dd, yyyy HH:mm')}</td>
+                  <td onClick={(e) => e.stopPropagation()}>
+                    <div className="table-actions">
+                      {repair.status === 'pending' ? (
+                        <>
+                          <button
+                            onClick={() => handleMarkAsCompleted(repair.id!)}
+                            className="btn-table btn-success-outline"
+                            title={t('adminDashboard.markAsCompleted')}
+                          >
+                            <CheckCircle size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleCancelRepair(repair.id!)}
+                            className="btn-table btn-danger-outline"
+                            title={t('adminDashboard.cancelRequest')}
+                          >
+                            <XCircle size={16} />
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => handleMarkAsPending(repair.id!)}
+                          className="btn-table btn-warning-outline"
+                          title={t('adminDashboard.reopen')}
+                        >
+                          <Clock size={16} />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
@@ -451,6 +590,44 @@ export default function AdminDashboard() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {selectedTableRepair && (
+        <div className="modal-overlay" onClick={() => setSelectedTableRepair(null)}>
+          <div className="modal-content modal-card-content" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="modal-close"
+              onClick={() => setSelectedTableRepair(null)}
+            >
+              ×
+            </button>
+            <RepairRequestCard
+              request={selectedTableRepair}
+              isExpanded={true}
+              onToggleDescription={() => {}}
+              truncateText={truncateText}
+              showSubmitterInfo={true}
+              showFollowUpActions={true}
+              showAdminActions={true}
+              followUpAction={followUpAction[selectedTableRepair.id!]}
+              onFollowUpActionChange={(value) => setFollowUpAction({ ...followUpAction, [selectedTableRepair.id!]: value })}
+              onAddFollowUpAction={() => handleAddFollowUpAction(selectedTableRepair.id!)}
+              onMarkAsCompleted={() => {
+                handleMarkAsCompleted(selectedTableRepair.id!);
+                setSelectedTableRepair(null);
+              }}
+              onMarkAsPending={() => {
+                handleMarkAsPending(selectedTableRepair.id!);
+                setSelectedTableRepair(null);
+              }}
+              onCancelRepair={() => {
+                handleCancelRepair(selectedTableRepair.id!);
+                setSelectedTableRepair(null);
+              }}
+              onImageClick={() => {}}
+            />
           </div>
         </div>
       )}
