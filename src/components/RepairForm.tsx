@@ -3,13 +3,16 @@ import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../firebase';
 
-export default function RepairForm() {
+interface RepairFormProps {
+  onSuccess: (orderNumber: string) => void;
+}
+
+export default function RepairForm({ onSuccess }: RepairFormProps) {
   const [description, setDescription] = useState('');
   const [submitterName, setSubmitterName] = useState('');
   const [location, setLocation] = useState('');
   const [images, setImages] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,7 +32,6 @@ export default function RepairForm() {
     e.preventDefault();
     setError('');
     setLoading(true);
-    setSuccess(false);
 
     try {
       // Upload images (only if provided)
@@ -55,19 +57,8 @@ export default function RepairForm() {
         createdAt: Timestamp.now(),
       });
 
-      // Reset form
-      setDescription('');
-      setSubmitterName('');
-      setLocation('');
-      setImages([]);
-      setSuccess(true);
-      
-      // Clear file input
-      const fileInput = document.getElementById('images') as HTMLInputElement;
-      if (fileInput) fileInput.value = '';
-
-      // Show success message for 5 seconds
-      setTimeout(() => setSuccess(false), 5000);
+      // Call success callback with order number
+      onSuccess(orderNumber);
     } catch (err) {
       setError('Failed to submit repair request. Please try again.');
       console.error('Submission error:', err);
@@ -132,11 +123,6 @@ export default function RepairForm() {
           </div>
 
           {error && <div className="error-message">{error}</div>}
-          {success && (
-            <div className="success-message">
-              Repair request submitted successfully!
-            </div>
-          )}
 
           <button type="submit" disabled={loading} className="btn-primary">
             {loading ? 'Submitting...' : 'Submit Request'}

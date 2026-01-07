@@ -4,12 +4,14 @@ import { auth } from './firebase';
 import Login from './components/Login';
 import RepairForm from './components/RepairForm';
 import AdminDashboard from './components/AdminDashboard';
+import SubmissionSuccess from './components/SubmissionSuccess';
 import './App.css';
 
 function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [view, setView] = useState<'user' | 'admin'>('user');
+  const [submittedOrderNumber, setSubmittedOrderNumber] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -30,6 +32,14 @@ function App() {
     } catch (error) {
       console.error('Logout error:', error);
     }
+  };
+
+  const handleSubmissionSuccess = (orderNumber: string) => {
+    setSubmittedOrderNumber(orderNumber);
+  };
+
+  const handleSubmitAnother = () => {
+    setSubmittedOrderNumber(null);
   };
 
   if (isLoading) {
@@ -93,7 +103,14 @@ function App() {
 
       <main className="main-content">
         {view === 'user' ? (
-          <RepairForm />
+          submittedOrderNumber ? (
+            <SubmissionSuccess 
+              orderNumber={submittedOrderNumber} 
+              onSubmitAnother={handleSubmitAnother}
+            />
+          ) : (
+            <RepairForm onSuccess={handleSubmissionSuccess} />
+          )
         ) : isAdmin ? (
           <AdminDashboard />
         ) : (
