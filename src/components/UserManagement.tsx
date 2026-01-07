@@ -209,10 +209,6 @@ export default function UserManagement() {
     return sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />;
   };
 
-  if (loading && users.length === 0) {
-    return <div className="loading">{t('userManagement.loadingUsers')}</div>;
-  }
-
   return (
     <div className="user-management">
       <div className="dashboard-header">
@@ -242,28 +238,34 @@ export default function UserManagement() {
           <thead>
             <tr>
               <th onClick={() => handleSort('username')} className="sortable-header">
-                <span>{t('userManagement.username')}</span>
-                <SortIcon column="username" />
+                <span>
+                  {t('userManagement.username')}
+                  <SortIcon column="username" />
+                </span>
               </th>
               <th onClick={() => handleSort('department')} className="sortable-header">
-                <span>{t('userManagement.department')}</span>
-                <SortIcon column="department" />
+                <span>
+                  {t('userManagement.department')}
+                  <SortIcon column="department" />
+                </span>
               </th>
               <th onClick={() => handleSort('status')} className="sortable-header">
-                <span>{t('userManagement.status')}</span>
-                <SortIcon column="status" />
-              </th>
-              <th onClick={() => handleSort('isFirstLogin')} className="sortable-header">
-                <span>{t('userManagement.firstLogin')}</span>
-                <SortIcon column="isFirstLogin" />
+                <span>
+                  {t('userManagement.status')}
+                  <SortIcon column="status" />
+                </span>
               </th>
               <th onClick={() => handleSort('createdAt')} className="sortable-header">
-                <span>{t('userManagement.createdAt')}</span>
-                <SortIcon column="createdAt" />
+                <span>
+                  {t('userManagement.createdAt')}
+                  <SortIcon column="createdAt" />
+                </span>
               </th>
               <th onClick={() => handleSort('lastLogin')} className="sortable-header">
-                <span>{t('userManagement.lastLogin')}</span>
-                <SortIcon column="lastLogin" />
+                <span>
+                  {t('userManagement.lastLogin')}
+                  <SortIcon column="lastLogin" />
+                </span>
               </th>
               <th>{t('userManagement.actions')}</th>
             </tr>
@@ -271,7 +273,7 @@ export default function UserManagement() {
           <tbody>
             {sortedUsers.length === 0 ? (
               <tr>
-                <td colSpan={7} className="no-data">
+                <td colSpan={6} className="no-data">
                   {t('userManagement.noUsers')}
                 </td>
               </tr>
@@ -284,13 +286,6 @@ export default function UserManagement() {
                     <span className={`status-badge ${user.status}`}>
                       {user.status === 'active' ? t('userManagement.active') : t('userManagement.suspended')}
                     </span>
-                  </td>
-                  <td>
-                    {user.isFirstLogin ? (
-                      <span className="badge badge-warning">{t('userManagement.yes')}</span>
-                    ) : (
-                      <span className="badge badge-success">{t('userManagement.no')}</span>
-                    )}
                   </td>
                   <td>{format(user.createdAt.toDate(), 'MMM dd, yyyy')}</td>
                   <td>{user.lastLogin ? format(user.lastLogin.toDate(), 'MMM dd, yyyy HH:mm') : '-'}</td>

@@ -1294,6 +1294,31 @@ button {
   border-bottom: 2px solid var(--border-color);
 }
 
+.users-table .sortable-header {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+}
+
+.users-table .sortable-header:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.users-table .sortable-header span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.users-table .sortable-header svg {
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.users-table .sortable-header:hover svg {
+  opacity: 1;
+}
+
 .users-table td {
   padding: 1rem;
   border-bottom: 1px solid var(--border-color);

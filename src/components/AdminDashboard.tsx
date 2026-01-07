@@ -198,10 +198,6 @@ export default function AdminDashboard() {
     return repair.status === filter;
   });
 
-  if (loading) {
-    return <div className="loading">{t('adminDashboard.loadingRepairs')}</div>;
-  }
-
   return (
     <div className="admin-dashboard">
       <div className="dashboard-header">
