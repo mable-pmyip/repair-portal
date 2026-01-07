@@ -4,7 +4,7 @@ import { db, auth } from '../firebase';
 import { PortalUser, DEFAULT_PASSWORD } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { format } from 'date-fns';
-import { UserPlus, Edit2, Trash2, Lock, UserX, UserCheck, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { UserPlus, Edit2, Trash2, Lock, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import ConfirmModal from './ConfirmModal';
 
 export default function UserManagement() {
@@ -104,22 +104,6 @@ export default function UserManagement() {
       setError(err.message || t('userManagement.errorUpdatingUser'));
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleSuspendUser = async (userId: string, currentStatus: string) => {
-    try {
-      const userRef = doc(db, 'users', userId);
-      await updateDoc(userRef, {
-        status: currentStatus === 'active' ? 'suspended' : 'active',
-      });
-      setSuccess(
-        currentStatus === 'active'
-          ? t('userManagement.userSuspendedSuccess')
-          : t('userManagement.userActivatedSuccess')
-      );
-    } catch (err: any) {
-      setError(err.message || t('userManagement.errorUpdatingUser'));
     }
   };
 
@@ -297,17 +281,6 @@ export default function UserManagement() {
                         title={t('userManagement.edit')}
                       >
                         <Edit2 size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleSuspendUser(user.id!, user.status)}
-                        className="btn-icon"
-                        title={
-                          user.status === 'active'
-                            ? t('userManagement.suspend')
-                            : t('userManagement.activate')
-                        }
-                      >
-                        {user.status === 'active' ? <UserX size={16} /> : <UserCheck size={16} />}
                       </button>
                       <button
                         onClick={() => handleResetPassword(user.id!)}

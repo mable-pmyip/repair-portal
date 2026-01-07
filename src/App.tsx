@@ -130,44 +130,9 @@ function AppContent() {
           </a>
         </div>
         <div className="nav-brand">
-          <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <h1>🔧 {t('app.title')}</h1>
-          </Link>
+          <h1>🔧 {t('app.title')}</h1>
         </div>
         <div className="nav-links">
-          {currentUser && (
-            <div className="user-menu">
-              <button 
-                className="user-menu-trigger"
-                onClick={() => setShowUserDropdown(!showUserDropdown)}
-                title={currentUser.username}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                  <circle cx="12" cy="7" r="4"/>
-                </svg>
-                <span className="user-name">{currentUser.username}</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="6 9 12 15 18 9"/>
-                </svg>
-              </button>
-              {showUserDropdown && (
-                <div className="user-dropdown">
-                  <div className="user-dropdown-header">
-                    <div className="user-dropdown-name">{currentUser.username}</div>
-                    <div className="user-dropdown-email">{currentUser.email}</div>
-                  </div>
-                  <div className="user-dropdown-divider"></div>
-                  <button onClick={handleLogout} className="user-dropdown-item">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
-                    </svg>
-                    {t('app.logout')}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
           {!isAdmin && !currentUser ? (
             <>
               <Link 
@@ -220,6 +185,32 @@ function AppContent() {
                 </svg>
                 <span className="nav-link-text">{t('userHome.myRequests')}</span>
               </Link>
+             <div className="user-menu">
+                <button 
+                    className="user-menu-trigger"
+                    onClick={() => setShowUserDropdown(!showUserDropdown)}
+                    title={currentUser.username}
+                >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    <span className="user-name">{currentUser.username}</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                </button>
+                {showUserDropdown && (
+                    <div className="user-dropdown">
+                    <button onClick={handleLogout} className="user-dropdown-item">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+                        </svg>
+                        {t('app.logout')}
+                    </button>
+                    </div>
+                )}
+                </div>
             </>
           )}
           {isAdmin && (

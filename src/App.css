@@ -825,13 +825,13 @@ button {
 }
 
 .action-buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
   gap: 0.5rem;
+  align-items: center;
 }
 
 .action-buttons button {
-  width: 100%;
+  flex-shrink: 0;
 }
 
 /* Follow-up Actions */
@@ -1097,6 +1097,16 @@ button {
 
 .user-name {
   font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .user-name {
+    display: none;
+  }
+  
+  .user-menu-trigger svg:last-child {
+    display: none;
+  }
 }
 
 .user-dropdown {
@@ -1672,10 +1682,6 @@ button {
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .page-header p {
