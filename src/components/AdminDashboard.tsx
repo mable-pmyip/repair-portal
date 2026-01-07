@@ -3,12 +3,15 @@ import { collection, query, onSnapshot, doc, updateDoc, Timestamp, orderBy } fro
 import { db } from '../firebase';
 import { RepairRequest } from '../types';
 import { format } from 'date-fns';
+import { Clock, CheckCircle, XCircle, List } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [repairs, setRepairs] = useState<RepairRequest[]>([]);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
+  const [filter, setFilter] = useState<'all' | 'pending' | 'completed' | 'cancelled'>('all');
   const [loading, setLoading] = useState(true);
   const [selectedRepair, setSelectedRepair] = useState<RepairRequest | null>(null);
+  const [followUpAction, setFollowUpAction] = useState<{ [key: string]: string }>({});
+  const [expandedDescriptions, setExpandedDescriptions] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     const q = query(collection(db, 'repairs'), orderBy('createdAt', 'desc'));
@@ -37,6 +40,23 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleAddFollowUpAction = async (repairId: string) => {
+    const action = followUpAction[repairId]?.trim();
+    if (!action) return;
+
+    try {
+      const repair = repairs.find(r => r.id === repairId);
+      const currentActions = repair?.followUpActions || [];
+      const repairRef = doc(db, 'repairs', repairId);
+      await updateDoc(repairRef, {
+        followUpActions: [...currentActions, action],
+      });
+      setFollowUpAction({ ...followUpAction, [repairId]: '' });
+    } catch (error) {
+      console.error('Error adding follow-up action:', error);
+    }
+  };
+
   const handleMarkAsPending = async (repairId: string) => {
     try {
       const repairRef = doc(db, 'repairs', repairId);
@@ -47,6 +67,30 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Error updating repair:', error);
     }
+  };
+
+  const handleCancelRepair = async (repairId: string) => {
+    try {
+      const repairRef = doc(db, 'repairs', repairId);
+      await updateDoc(repairRef, {
+        status: 'cancelled',
+        cancelledAt: Timestamp.now(),
+      });
+    } catch (error) {
+      console.error('Error cancelling repair:', error);
+    }
+  };
+
+  const toggleDescription = (repairId: string) => {
+    setExpandedDescriptions(prev => ({
+      ...prev,
+      [repairId]: !prev[repairId]
+    }));
+  };
+
+  const truncateText = (text: string, maxLength: number = 200) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
   };
 
   const filteredRepairs = repairs.filter(repair => {
@@ -69,19 +113,29 @@ export default function AdminDashboard() {
           className={filter === 'all' ? 'tab active' : 'tab'}
           onClick={() => setFilter('all')}
         >
+          <List size={18} />
           All ({repairs.length})
         </button>
         <button
           className={filter === 'pending' ? 'tab active' : 'tab'}
           onClick={() => setFilter('pending')}
         >
+          <Clock size={18} />
           Pending ({repairs.filter(r => r.status === 'pending').length})
         </button>
         <button
           className={filter === 'completed' ? 'tab active' : 'tab'}
           onClick={() => setFilter('completed')}
         >
+          <CheckCircle size={18} />
           Completed ({repairs.filter(r => r.status === 'completed').length})
+        </button>
+        <button
+          className={filter === 'cancelled' ? 'tab active' : 'tab'}
+          onClick={() => setFilter('cancelled')}
+        >
+          <XCircle size={18} />
+          Cancelled ({repairs.filter(r => r.status === 'cancelled').length})
         </button>
       </div>
 
@@ -100,17 +154,43 @@ export default function AdminDashboard() {
               
               <div className="repair-details">
                 <p><strong>Submitted by:</strong> {repair.submitterName}</p>
-                <p><strong>Email:</strong> {repair.submitterEmail}</p>
+                <p><strong>Location:</strong> {repair.location}</p>
                 <p><strong>Date:</strong> {format(repair.createdAt.toDate(), 'MMM dd, yyyy HH:mm')}</p>
                 {repair.completedAt && (
                   <p><strong>Completed:</strong> {format(repair.completedAt.toDate(), 'MMM dd, yyyy HH:mm')}</p>
+                )}
+                {repair.cancelledAt && (
+                  <p><strong>Cancelled:</strong> {format(repair.cancelledAt.toDate(), 'MMM dd, yyyy HH:mm')}</p>
                 )}
               </div>
 
               <div className="repair-description">
                 <strong>Description:</strong>
-                <p>{repair.description}</p>
+                <p>
+                  {expandedDescriptions[repair.id!] || repair.description.length <= 200
+                    ? repair.description
+                    : truncateText(repair.description, 200)}
+                </p>
+                {repair.description.length > 200 && (
+                  <button
+                    className="btn-expand"
+                    onClick={() => toggleDescription(repair.id!)}
+                  >
+                    {expandedDescriptions[repair.id!] ? 'Show less' : 'Read more'}
+                  </button>
+                )}
               </div>
+
+              {repair.followUpActions && repair.followUpActions.length > 0 && (
+                <div className="follow-up-actions">
+                  <strong>Follow-up Actions:</strong>
+                  <ul>
+                    {repair.followUpActions.map((action, index) => (
+                      <li key={index}>{action}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {repair.imageUrls.length > 0 && (
                 <div className="repair-images">
@@ -131,18 +211,56 @@ export default function AdminDashboard() {
 
               <div className="repair-actions">
                 {repair.status === 'pending' ? (
+                  <>
+                    <div className="follow-up-input">
+                      <input
+                        type="text"
+                        placeholder="Add follow-up action..."
+                        value={followUpAction[repair.id!] || ''}
+                        onChange={(e) => setFollowUpAction({ ...followUpAction, [repair.id!]: e.target.value })}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddFollowUpAction(repair.id!);
+                          }
+                        }}
+                      />
+                      <button
+                        onClick={() => handleAddFollowUpAction(repair.id!)}
+                        className="btn-secondary"
+                        disabled={!followUpAction[repair.id!]?.trim()}
+                      >
+                        Add Action
+                      </button>
+                    </div>
+                    <div className="action-buttons">
+                      <button
+                        onClick={() => handleMarkAsCompleted(repair.id!)}
+                        className="btn-success"
+                      >
+                        Mark as Completed
+                      </button>
+                      <button
+                        onClick={() => handleCancelRepair(repair.id!)}
+                        className="btn-danger"
+                      >
+                        Cancel Request
+                      </button>
+                    </div>
+                  </>
+                ) : repair.status === 'completed' ? (
                   <button
-                    onClick={() => handleMarkAsCompleted(repair.id!)}
-                    className="btn-success"
+                    onClick={() => handleMarkAsPending(repair.id!)}
+                    className="btn-warning"
                   >
-                    Mark as Completed
+                    Reopen
                   </button>
                 ) : (
                   <button
                     onClick={() => handleMarkAsPending(repair.id!)}
                     className="btn-warning"
                   >
-                    Reopen
+                    Restore to Pending
                   </button>
                 )}
               </div>

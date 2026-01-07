@@ -6,7 +6,7 @@ import { db, storage } from '../firebase';
 export default function RepairForm() {
   const [description, setDescription] = useState('');
   const [submitterName, setSubmitterName] = useState('');
-  const [submitterEmail, setSubmitterEmail] = useState('');
+  const [location, setLocation] = useState('');
   const [images, setImages] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -49,7 +49,7 @@ export default function RepairForm() {
         orderNumber,
         description,
         submitterName,
-        submitterEmail,
+        location,
         imageUrls,
         status: 'pending',
         createdAt: Timestamp.now(),
@@ -58,7 +58,7 @@ export default function RepairForm() {
       // Reset form
       setDescription('');
       setSubmitterName('');
-      setSubmitterEmail('');
+      setLocation('');
       setImages([]);
       setSuccess(true);
       
@@ -94,14 +94,14 @@ export default function RepairForm() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="email">Your Email</label>
+            <label htmlFor="location">Location</label>
             <input
-              id="email"
-              type="email"
-              value={submitterEmail}
-              onChange={(e) => setSubmitterEmail(e.target.value)}
+              id="location"
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
               required
-              placeholder="john@example.com"
+              placeholder="e.g., Building A, Room 101"
             />
           </div>
 
