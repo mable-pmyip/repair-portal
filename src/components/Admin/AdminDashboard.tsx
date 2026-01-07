@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, doc, updateDoc, Timestamp, orderBy } from 'firebase/firestore';
-import { db } from '../firebase';
-import { RepairRequest } from '../types';
+import { db } from '../../firebase';
+import { RepairRequest } from '../../types';
 import { Clock, CheckCircle, XCircle, List, Download, FileText } from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
-import RepairRequestCard from './RepairRequestCard';
+import { useLanguage } from '../../contexts/LanguageContext';
+import RepairRequestCard from '../RepairRequestCard';
 import { format } from 'date-fns';
 
 export default function AdminDashboard() {

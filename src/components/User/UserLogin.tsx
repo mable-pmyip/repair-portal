@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { collection, query, where, getDocs, updateDoc, doc, Timestamp } from 'firebase/firestore';
-import { auth, db } from '../firebase';
-import { useLanguage } from '../contexts/LanguageContext';
-import { PortalUser } from '../types';
+import { auth, db } from '../../firebase';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { PortalUser } from '../../types';
 
 interface UserLoginProps {
   onLoginSuccess: (user: PortalUser) => void;
@@ -77,8 +77,7 @@ export default function UserLogin({ onLoginSuccess }: UserLoginProps) {
     <div className="user-login-container">
       <div className="user-login-card">
         <div className="login-header">
-          <h2>🔧 {t('userLogin.title')}</h2>
-          <p className="login-subtitle">{t('userLogin.subtitle')}</p>
+          <h2>{t('userLogin.title')}</h2>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="form-group">

@@ -138,7 +138,6 @@
     },
     "userLogin": {
       "title": "User Login",
-      "subtitle": "Please log in to submit a repair request",
       "username": "Username",
       "usernamePlaceholder": "Enter your username",
       "password": "Password",

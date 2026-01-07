@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../firebase';
-import { useLanguage } from '../contexts/LanguageContext';
-import { PortalUser } from '../types';
+import { db, storage } from '../../firebase';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { PortalUser } from '../../types';
 
 interface RepairFormProps {
   user: PortalUser;

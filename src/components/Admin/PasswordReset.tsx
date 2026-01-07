@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { updatePassword } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase';
-import { useLanguage } from '../contexts/LanguageContext';
+import { auth, db } from '../../firebase';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Lock } from 'lucide-react';
 
 interface PasswordResetProps {

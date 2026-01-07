@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import Login from '../components/Login';
+import AdminLogin from '../components/Admin/AdminLogin';
 
 export default function AdminLoginPage() {
   const navigate = useNavigate();
@@ -8,5 +8,5 @@ export default function AdminLoginPage() {
     navigate('/admin');
   };
 
-  return <Login onLoginSuccess={handleLoginSuccess} />;
+  return <AdminLogin onLoginSuccess={handleLoginSuccess} />;
 }

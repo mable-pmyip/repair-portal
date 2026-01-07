@@ -1,5 +1,5 @@
-import RepairForm from '../components/RepairForm';
-import SubmissionSuccess from '../components/SubmissionSuccess';
+import RepairForm from '../components/User/RepairForm';
+import SubmissionSuccess from '../components/User/SubmissionSuccess';
 import { PortalUser } from '../types';
 import { useState } from 'react';
 

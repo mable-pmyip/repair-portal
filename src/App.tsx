@@ -3,9 +3,9 @@ import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } from 're
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from './firebase';
-import UserManagement from './components/UserManagement';
-import AdminDashboard from './components/AdminDashboard';
-import PasswordReset from './components/PasswordReset';
+import UserManagement from './components/Admin/UserManagement';
+import AdminDashboard from './components/Admin/AdminDashboard';
+import PasswordReset from './components/Admin/PasswordReset';
 import LanguageSelector from './components/LanguageSelector';
 import HomePage from './routes/HomePage';
 import AdminHomePage from './routes/AdminHomePage';

@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase';
-import { useLanguage } from '../contexts/LanguageContext';
+import { auth } from '../../firebase';
+import { useLanguage } from '../../contexts/LanguageContext';
 
-interface LoginProps {
+interface AdminLoginProps {
   onLoginSuccess: () => void;
 }
 
-export default function Login({ onLoginSuccess }: LoginProps) {
+export default function AdminLogin({ onLoginSuccess }: AdminLoginProps) {
   const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
