@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import AdminLogin from '../components/Admin/AdminLogin';
+import AdminLogin from '../../components/Admin/AdminLogin';
 
 export default function AdminLoginPage() {
   const navigate = useNavigate();

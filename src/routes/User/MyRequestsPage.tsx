@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
-import { db } from '../firebase';
-import { useLanguage } from '../contexts/LanguageContext';
-import { PortalUser, RepairRequest } from '../types';
+import { db } from '../../firebase';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { PortalUser, RepairRequest } from '../../types';
 import { Clock, CheckCircle, XCircle, List, FileText, Search, Grid, Table as TableIcon } from 'lucide-react';
-import RepairRequestCard from '../components/RepairRequestCard';
+import RepairRequestCard from '../../components/RepairRequestCard';
 import { format } from 'date-fns';
 
 interface MyRequestsPageProps {

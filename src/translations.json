@@ -7,6 +7,8 @@
       "adminPanel": "Requests Dashboard",
       "adminLogin": "Admin Login",
       "userManagement": "Manage User",
+      "submitRequest": "Submit Request",
+      "myRequests": "My Requests",
       "logout": "Logout",
       "footer": "© 2026 Repair Portal. All rights reserved."
     },
@@ -162,12 +164,16 @@
       "tooManyAttempts": "Too many login attempts. Please try again later.",
       "errorLoggingIn": "Error logging in. Please try again."
     },
+    "adminHome": {
+      "title": "Welcome back!",
+      "subtitle": "What would you like to do today?",
+      "dashboardDescription": "View and manage all repair requests",
+      "usersDescription": "Add, edit, or manage user accounts"
+    },
     "userHome": {
       "title": "Welcome Back!",
       "subtitle": "What would you like to do today?",
-      "submitRequest": "Submit Request",
       "submitDescription": "Report a new repair or maintenance issue",
-      "myRequests": "My Requests",
       "myRequestsDescription": "View and track your submitted requests"
     },
     "myRequests": {
@@ -210,6 +216,8 @@
       "adminPanel": "申請儀表板",
       "adminLogin": "管理員登入",
       "userManagement": "用戶管理",
+      "submitRequest": "提交申請",
+      "myRequests": "我的申請",
       "logout": "登出",
       "footer": "© 2026 維修申請系統。版權所有。"
     },
@@ -365,12 +373,17 @@
       "accountSuspended": "您的帳戶已被暫停。請聯繫您的管理員。",
       "tooManyAttempts": "登入嘗試次數過多。請稍後再試。",
       "errorLoggingIn": "登入時出錯。請重試。"
-    },    "userHome": {
+    },
+    "adminHome": {
       "title": "歡迎回來！",
       "subtitle": "今天想做什麼？",
-      "submitRequest": "提交申請",
+      "dashboardDescription": "查看和管理所有維修請求",
+      "usersDescription": "新增、編輯或管理用戶帳戶"
+    },
+    "userHome": {
+      "title": "歡迎回來！",
+      "subtitle": "今天想做什麼？",
       "submitDescription": "報告新的維修或保養問題",
-      "myRequests": "我的申請",
       "myRequestsDescription": "查看和追蹤您提交的申請"
     },
     "myRequests": {

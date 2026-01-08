@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import UserLogin from '../components/User/UserLogin';
-import { PortalUser } from '../types';
+import UserLogin from '../../components/User/UserLogin';
+import { PortalUser } from '../../types';
 
 interface UserLoginPageProps {
   onLoginSuccess: (user: PortalUser) => void;

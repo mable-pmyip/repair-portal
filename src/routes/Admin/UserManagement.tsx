@@ -5,7 +5,7 @@ import { PortalUser, DEFAULT_PASSWORD } from '../../types';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { format } from 'date-fns';
 import { UserPlus, Edit2, Trash2, Lock, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import ConfirmModal from '../ConfirmModal';
+import ConfirmModal from '../../components/Admin/ConfirmModal';
 
 export default function UserManagement() {
   const { t } = useLanguage();

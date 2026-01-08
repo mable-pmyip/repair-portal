@@ -5,11 +5,11 @@
 }
 
 :root {
-  --primary-color: #3b82f6;
+  --primary-color: #5b7fc7;
   --secondary-color: #64748b;
-  --success-color: #10b981;
-  --warning-color: #f59e0b;
-  --danger-color: #ef4444;
+  --success-color: #4d9574;
+  --warning-color: #d4890d;
+  --danger-color: #c25555;
   --bg-color: #f8fafc;
   --card-bg: #ffffff;
   --text-primary: #1e293b;

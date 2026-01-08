@@ -1,6 +1,6 @@
-import RepairForm from '../components/User/RepairForm';
-import SubmissionSuccess from '../components/User/SubmissionSuccess';
-import { PortalUser } from '../types';
+import RepairForm from '../../components/User/RepairForm';
+import SubmissionSuccess from '../../components/User/SubmissionSuccess';
+import { PortalUser } from '../../types';
 import { useState } from 'react';
 
 interface SubmitRequestPageProps {
