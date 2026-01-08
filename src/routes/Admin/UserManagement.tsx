@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, onSnapshot, doc, updateDoc, deleteDoc, addDoc } from 'firebase/firestore';
 import { db, auth } from '../../firebase';
 import { PortalUser, DEFAULT_PASSWORD } from '../../types';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -44,22 +44,56 @@ export default function UserManagement() {
     return () => unsubscribe();
   }, []);
 
+  // Sanitize username to ensure it can be used in email
+  const sanitizeUsername = (username: string): string => {
+    return username
+      .trim()
+      .toLowerCase()
+      .normalize('NFD') // Decompose unicode characters
+      .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+      .replace(/[^a-z0-9.-]/g, '') // Keep only valid email characters
+      .replace(/^[.-]+|[.-]+$/g, '') // Remove leading/trailing dots and hyphens
+      .replace(/\.{2,}/g, '.') // Replace multiple dots with single dot
+      .slice(0, 64);
+  };
+
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
     setLoading(true);
 
+    // Sanitize inputs before sending
+    const sanitizedUsername = sanitizeUsername(formData.username);
+    const sanitizedDepartment = formData.department.trim();
+
+    // Validate sanitized username
+    if (!sanitizedUsername || sanitizedUsername.length === 0) {
+      setError('Username contains invalid characters. Please use only letters, numbers, dots, and hyphens.');
+      setLoading(false);
+      return;
+    }
+
+    // Additional validation for email format
+    if (sanitizedUsername.length < 1) {
+      setError('Username is too short.');
+      setLoading(false);
+      return;
+    }
+
+    // Use environment variable for API URL (Worker will be deployed separately)
+    const apiUrl = import.meta.env.VITE_API_URL || '/api';
+
     try {
-      // Call backend API to create user
-      const response = await fetch('/api/create-user', {
+      // Call backend API to create user (Cloudflare Worker)
+      const response = await fetch(`${apiUrl}/create-user`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          username: formData.username,
-          department: formData.department,
+          username: sanitizedUsername,
+          department: sanitizedDepartment,
           password: DEFAULT_PASSWORD,
           createdBy: auth.currentUser?.email || 'admin',
         }),
@@ -70,6 +104,18 @@ export default function UserManagement() {
       if (!response.ok) {
         throw new Error(data.error || 'Failed to create user');
       }
+
+      // Add user to Firestore from frontend (has proper auth)
+      await addDoc(collection(db, 'users'), {
+        uid: data.uid,
+        email: data.email,
+        username: sanitizedUsername,
+        department: sanitizedDepartment,
+        status: 'active',
+        isFirstLogin: true,
+        createdAt: new Date(),
+        createdBy: auth.currentUser?.email || 'admin',
+      });
 
       setSuccess(t('userManagement.userAddedSuccess'));
       setShowAddModal(false);
@@ -309,10 +355,27 @@ export default function UserManagement() {
                   id="username"
                   type="text"
                   value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  onChange={(e) => {
+                    const cleaned = e.target.value
+                      .toLowerCase()
+                      .replace(/[^a-z0-9.-]/g, '')
+                      .replace(/\.{2,}/g, '.')
+                      .replace(/^[.-]+/, '');
+                    setFormData({ ...formData, username: cleaned });
+                  }}
                   required
                   placeholder={t('userManagement.usernamePlaceholder')}
+                  autoComplete="off"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck="false"
+                  inputMode="email"
                 />
+                {formData.username && (
+                  <small style={{ color: 'var(--text-secondary)', marginTop: '0.25rem', display: 'block' }}>
+                    Email will be: {formData.username}@repairportal.com
+                  </small>
+                )}
               </div>
               <div className="form-group">
                 <label htmlFor="department">{t('userManagement.department')}</label>
@@ -320,9 +383,10 @@ export default function UserManagement() {
                   id="department"
                   type="text"
                   value={formData.department}
-                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, department: e.target.value.trim() })}
                   required
                   placeholder={t('userManagement.departmentPlaceholder')}
+                  autoComplete="off"
                 />
               </div>
               <div className="info-box">
@@ -359,9 +423,13 @@ export default function UserManagement() {
                   id="edit-username"
                   type="text"
                   value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value.trim() })}
                   required
                   placeholder={t('userManagement.usernamePlaceholder')}
+                  autoComplete="off"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck="false"
                 />
               </div>
               <div className="form-group">
@@ -370,9 +438,13 @@ export default function UserManagement() {
                   id="edit-department"
                   type="text"
                   value={formData.department}
-                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, department: e.target.value.trim() })}
                   required
                   placeholder={t('userManagement.departmentPlaceholder')}
+                  autoComplete="off"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck="false"
                 />
               </div>
               <div className="modal-actions">
