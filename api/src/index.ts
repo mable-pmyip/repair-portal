@@ -183,7 +183,7 @@ export default {
       return handleDeleteUser(uid, env);
     }
 
-    // 404 for unknown routes
+    // 404 for unknown routes:::::
     return new Response(
       JSON.stringify({ error: 'Not Found' }),
       { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
