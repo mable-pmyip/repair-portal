@@ -324,7 +324,7 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
                   showSubmitterInfo={false}
                   showFollowUpActions={false}
                   showAdminActions={false}
-                  onImageClick={(req) => window.open(req.imageUrls[0], '_blank')}
+                  onImageClick={(req, imageIndex) => window.open(req.imageUrls[imageIndex], '_blank')}
                 />
               ))}
             </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from './firebase';
@@ -243,7 +243,18 @@ function AppContent() {
         )}
 
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route 
+            path="/" 
+            element={
+              isAdmin ? (
+                <Navigate to="/admin/dashboard" replace />
+              ) : currentUser ? (
+                <Navigate to="/user/my-requests" replace />
+              ) : (
+                <HomePage />
+              )
+            } 
+          />
           <Route path="/user-login" element={<UserLoginPage onLoginSuccess={handleUserLogin} />} />
           <Route path="/admin-login" element={<AdminLoginPage />} />
           <Route 

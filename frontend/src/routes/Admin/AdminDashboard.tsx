@@ -3,6 +3,7 @@ import { Clock, CheckCircle, XCircle, Download, FileText, Search, Grid, Table as
 import { useLanguage } from '../../contexts/LanguageContext';
 import { RepairRequest } from '../../types';
 import RepairRequestCard from '../../components/RepairRequestCard';
+import ImageWithLoading from '../../components/ImageWithLoading';
 import ActionReasonModal from '../../components/Admin/RequestDashboard/ActionReasonModal';
 import ExportModal from '../../components/Admin/RequestDashboard/ExportModal';
 import RepairsTable from '../../components/Admin/RequestDashboard/RepairsTable';
@@ -17,7 +18,7 @@ export default function AdminDashboard() {
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [sortBy, setSortBy] = useState<'createdAt' | 'status' | 'orderNumber' | 'location' | 'submitterName'>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [selectedRepair, setSelectedRepair] = useState<RepairRequest | null>(null);
+  const [selectedRepair, setSelectedRepair] = useState<{ repair: RepairRequest; imageIndex: number } | null>(null);
   const [selectedTableRepair, setSelectedTableRepair] = useState<RepairRequest | null>(null);
   const [expandedDescriptions, setExpandedDescriptions] = useState<{ [key: string]: boolean }>({});
   const [showExportModal, setShowExportModal] = useState(false);
@@ -209,7 +210,7 @@ export default function AdminDashboard() {
                   onAddFollowUpAction={() => handleAddFollowUpAction(repair.id!, repairs)}
                   onMarkAsCompleted={() => handleMarkAsCompleted(repair.id!)}
                   onCancelRepair={() => handleCancelRepair(repair.id!)}
-                  onImageClick={setSelectedRepair}
+                  onImageClick={(repair, imageIndex) => setSelectedRepair({ repair, imageIndex })}
                 />
               ))}
             </div>
@@ -249,16 +250,13 @@ export default function AdminDashboard() {
             <button className="modal-close" onClick={() => setSelectedRepair(null)}>
               ×
             </button>
-            <h2>{selectedRepair.orderNumber}</h2>
+            <h2>{selectedRepair.repair.orderNumber}</h2>
             <div className="modal-images">
-              {selectedRepair.imageUrls.map((url, index) => (
-                <img
-                  key={index}
-                  src={url}
-                  alt={`Repair ${index + 1}`}
-                  className="full-image"
-                />
-              ))}
+              <ImageWithLoading
+                src={selectedRepair.repair.imageUrls[selectedRepair.imageIndex]}
+                alt={`Repair ${selectedRepair.imageIndex + 1}`}
+                className="full-image"
+              />
             </div>
           </div>
         </div>

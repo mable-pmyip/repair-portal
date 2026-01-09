@@ -2,6 +2,7 @@ import { format } from 'date-fns';
 import { Clock, CheckCircle, XCircle } from 'lucide-react';
 import { RepairRequest } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
+import ImageWithLoading from './ImageWithLoading';
 
 interface RepairRequestCardProps {
   request: RepairRequest;
@@ -16,7 +17,7 @@ interface RepairRequestCardProps {
   onAddFollowUpAction?: () => void;
   onMarkAsCompleted?: () => void;
   onCancelRepair?: () => void;
-  onImageClick?: (request: RepairRequest) => void;
+  onImageClick?: (request: RepairRequest, imageIndex: number) => void;
 }
 
 export default function RepairRequestCard({
@@ -107,12 +108,12 @@ export default function RepairRequestCard({
           <strong>{t('adminDashboard.images')}</strong>
           <div className="image-grid">
             {request.imageUrls.map((url, index) => (
-              <img
+              <ImageWithLoading
                 key={index}
                 src={url}
                 alt={`Repair ${index + 1}`}
                 className="thumbnail"
-                onClick={() => onImageClick?.(request)}
+                onClick={() => onImageClick?.(request, index)}
               />
             ))}
           </div>

@@ -5,6 +5,7 @@ import { db, storage } from '../../firebase';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { PortalUser } from '../../types';
 import { Loader2 } from 'lucide-react';
+import { compressImages } from '../../utils/imageCompression';
 
 interface RepairFormProps {
   user: PortalUser;
@@ -18,6 +19,7 @@ export default function RepairForm({ user, onSuccess, onCancel }: RepairFormProp
   const [location, setLocation] = useState('');
   const [images, setImages] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null);
   const [error, setError] = useState('');
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,16 +39,26 @@ export default function RepairForm({ user, onSuccess, onCancel }: RepairFormProp
     e.preventDefault();
     setError('');
     setLoading(true);
+    setUploadProgress(null);
 
     try {
       // Upload images (only if provided)
       const imageUrls: string[] = [];
       if (images.length > 0) {
-        for (const image of images) {
-          const imageRef = ref(storage, `repairs/${Date.now()}-${image.name}`);
-          await uploadBytes(imageRef, image);
+        // Compress images first
+        setUploadProgress({ current: 0, total: images.length });
+        const compressedImages = await compressImages(images, (current, total) => {
+          setUploadProgress({ current, total });
+        });
+        
+        // Upload compressed images
+        for (let i = 0; i < compressedImages.length; i++) {
+          const { blob, filename } = compressedImages[i];
+          const imageRef = ref(storage, `repairs/${Date.now()}-${filename}`);
+          await uploadBytes(imageRef, blob);
           const url = await getDownloadURL(imageRef);
           imageUrls.push(url);
+          setUploadProgress({ current: i + 1, total: compressedImages.length });
         }
       }
 
@@ -79,7 +91,11 @@ export default function RepairForm({ user, onSuccess, onCancel }: RepairFormProp
       {loading && (
         <div className="loading-overlay">
           <Loader2 size={48} className="spinner" />
-          <p>{t('repairForm.submitting')}</p>
+          {uploadProgress ? (
+            <p>{t('repairForm.uploadingImages')} {uploadProgress.current}/{uploadProgress.total}</p>
+          ) : (
+            <p>{t('repairForm.submitting')}</p>
+          )}
         </div>
       )}
       <h2>{t('repairForm.title')}</h2>

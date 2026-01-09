@@ -30,6 +30,7 @@
       "optional": "optional",
       "filesSelected": "file(s) selected",
       "submitting": "Submitting...",
+      "uploadingImages": "Uploading images",
       "submitRequest": "Submit Request",
       "cancel": "Cancel",
       "errorMessage": "Failed to submit repair request. Please try again."
@@ -250,6 +251,7 @@
       "optional": "可選",
       "filesSelected": "個檔案已選擇",
       "submitting": "提交中...",
+      "uploadingImages": "上傳圖片中",
       "submitRequest": "提交申請",
       "cancel": "取消",
       "errorMessage": "提交維修申請失敗。請重試。"
