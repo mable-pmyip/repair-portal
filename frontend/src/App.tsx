@@ -5,7 +5,7 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import UserManagement from './routes/Admin/UserManagement';
 import AdminDashboard from './routes/Admin/AdminDashboard';
-import PasswordReset from './components/Admin/PasswordReset';
+import PasswordReset from './components/PasswordReset';
 import LanguageSelector from './components/LanguageSelector';
 import HomePage from './routes/HomePage';
 import AdminHomePage from './routes/Admin/AdminHomePage';

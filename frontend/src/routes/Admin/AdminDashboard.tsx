@@ -5,7 +5,7 @@ import { RepairRequest } from '../../types';
 import { Clock, CheckCircle, XCircle, List, Download, FileText, Search, Grid, Table as TableIcon } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import RepairRequestCard from '../../components/RepairRequestCard';
-import ActionReasonModal from '../../components/Admin/ActionReasonModal';
+import ActionReasonModal from '../../components/Admin/RequestDashboard/ActionReasonModal';
 import { format } from 'date-fns';
 
 export default function AdminDashboard() {

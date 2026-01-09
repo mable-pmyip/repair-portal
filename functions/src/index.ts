@@ -76,3 +76,35 @@ export const deleteUser = onCall(async (request) => {
   }
 });
 
+// Reset user password to default
+export const resetUserPassword = onCall(async (request) => {
+  // Verify caller is authenticated
+  if (!request.auth) {
+    throw new Error("unauthenticated: User must be authenticated");
+  }
+
+  const {uid, password} = request.data;
+
+  if (!uid) {
+    throw new Error("invalid-argument: Missing user ID");
+  }
+
+  if (!password) {
+    throw new Error("invalid-argument: Missing password");
+  }
+
+  try {
+    await admin.auth().updateUser(uid, {
+      password: password,
+    });
+    logger.info(`Password reset for user: ${uid}`);
+    return {success: true, message: "Password reset successfully"};
+  } catch (error) {
+    const err = error as {code?: string; message?: string};
+    logger.error("Error resetting password:", error);
+    if (err.code === "auth/user-not-found") {
+      throw new Error("not-found: User not found");
+    }
+    throw new Error(`internal: ${err.message}`);
+  }
+});
