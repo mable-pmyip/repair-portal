@@ -3,7 +3,7 @@ import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestor
 import { db } from '../../firebase';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { PortalUser, RepairRequest } from '../../types';
-import { Clock, CheckCircle, XCircle, List, FileText, Search, Grid, Table as TableIcon, Plus } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, FileText, Search, Grid, Table as TableIcon, Plus } from 'lucide-react';
 import RepairRequestCard from '../../components/RepairRequestCard';
 import RepairForm from '../../components/User/RepairForm';
 import SubmissionSuccess from '../../components/User/SubmissionSuccess';
@@ -17,7 +17,7 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
   const { t } = useLanguage();
   const [requests, setRequests] = useState<RepairRequest[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'completed' | 'cancelled'>('all');
+  const [filter, setFilter] = useState<'pending' | 'completed' | 'cancelled'>('pending');
   const [expandedDescriptions, setExpandedDescriptions] = useState<{ [key: string]: boolean }>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
@@ -86,7 +86,7 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
 
   const filteredRequests = requests.filter((req) => {
     // Filter by status
-    const statusMatch = filter === 'all' || req.status === filter;
+    const statusMatch = req.status === filter;
     
     // Filter by search query
     if (!searchQuery.trim()) return statusMatch;
@@ -257,12 +257,6 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
       {/* Mobile Filter Tabs */}
       <div className="filter-tabs-mobile">
         <button
-          className={filter === 'all' ? 'filter-tab-simple active' : 'filter-tab-simple'}
-          onClick={() => setFilter('all')}
-        >
-          {t('adminDashboard.all')}
-        </button>
-        <button
           className={filter === 'pending' ? 'filter-tab-simple active' : 'filter-tab-simple'}
           onClick={() => setFilter('pending')}
         >
@@ -288,67 +282,25 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
       {/* Desktop Filter Tabs */}
       <div className="filter-tabs">
         <button
-          className={filter === 'all' ? 'filter-tab active' : 'filter-tab'}
-          onClick={() => setFilter('all')}
-        >
-          <List size={18} />
-          {t('adminDashboard.all')} ({filteredRequests.length})
-        </button>
-        <button
           className={filter === 'pending' ? 'filter-tab active' : 'filter-tab'}
           onClick={() => setFilter('pending')}
         >
           <Clock size={18} />
-          {t('adminDashboard.pending')} ({requests.filter(r => {
-            if (!searchQuery.trim()) return r.status === 'pending';
-            const query = searchQuery.toLowerCase();
-            const searchableFields = [
-              r.orderNumber?.toLowerCase() || '',
-              r.description?.toLowerCase() || '',
-              r.location?.toLowerCase() || '',
-              r.followUpActions?.join(' ').toLowerCase() || '',
-              r.completionReason?.toLowerCase() || '',
-              r.cancellationReason?.toLowerCase() || ''
-            ];
-            return r.status === 'pending' && searchableFields.some(field => field.includes(query));
-          }).length})
+          {t('adminDashboard.pending')}
         </button>
         <button
           className={filter === 'completed' ? 'filter-tab active' : 'filter-tab'}
           onClick={() => setFilter('completed')}
         >
           <CheckCircle size={18} />
-          {t('adminDashboard.completed')} ({requests.filter(r => {
-            if (!searchQuery.trim()) return r.status === 'completed';
-            const query = searchQuery.toLowerCase();
-            const searchableFields = [
-              r.orderNumber?.toLowerCase() || '',
-              r.description?.toLowerCase() || '',
-              r.location?.toLowerCase() || '',
-              r.followUpActions?.join(' ').toLowerCase() || '',
-              r.completionReason?.toLowerCase() || '',
-              r.cancellationReason?.toLowerCase() || ''
-            ];
-            return r.status === 'completed' && searchableFields.some(field => field.includes(query));
-          }).length})
+          {t('adminDashboard.completed')}
         </button>
         <button
           className={filter === 'cancelled' ? 'filter-tab active' : 'filter-tab'}
           onClick={() => setFilter('cancelled')}
         >
           <XCircle size={18} />
-          {t('adminDashboard.cancelled')} ({requests.filter(r => {
-            if (!searchQuery.trim()) return r.status === 'cancelled';
-            const query = searchQuery.toLowerCase();
-            const searchableFields = [
-              r.orderNumber?.toLowerCase() || '',
-              r.description?.toLowerCase() || '',
-              r.location?.toLowerCase() || '',
-              r.followUpActions?.join(' ').toLowerCase() || '',
-              r.cancellationReason?.toLowerCase() || ''
-            ];
-            return r.status === 'cancelled' && searchableFields.some(field => field.includes(query));
-          }).length})
+          {t('adminDashboard.cancelled')}
         </button>
       </div>
 
@@ -358,23 +310,25 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
           <h3>{t('myRequests.noRequests')}</h3>
           <p>{t('myRequests.noRequestsDescription')}</p>
         </div>
-      ) : viewMode === 'grid' ? (
-        <div className="requests-grid">
-          {sortedRequests.map((request) => (
-            <RepairRequestCard
-              key={request.id}
-              request={request}
-              isExpanded={expandedDescriptions[request.id!] || false}
-              onToggleDescription={toggleDescription}
-              truncateText={truncateText}
-              showSubmitterInfo={false}
-              showFollowUpActions={false}
-              showAdminActions={false}
-              onImageClick={(req) => window.open(req.imageUrls[0], '_blank')}
-            />
-          ))}
-        </div>
       ) : (
+        <>
+          {viewMode === 'grid' ? (
+            <div className="requests-grid">
+              {sortedRequests.map((request) => (
+                <RepairRequestCard
+                  key={request.id}
+                  request={request}
+                  isExpanded={expandedDescriptions[request.id!] || false}
+                  onToggleDescription={toggleDescription}
+                  truncateText={truncateText}
+                  showSubmitterInfo={false}
+                  showFollowUpActions={false}
+                  showAdminActions={false}
+                  onImageClick={(req) => window.open(req.imageUrls[0], '_blank')}
+                />
+              ))}
+            </div>
+          ) : (
         <div className="table-container">
           <table className="requests-table">
             <thead>
@@ -411,6 +365,8 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
             </tbody>
           </table>
         </div>
+      )}
+        </>
       )}
 
       {selectedTableRequest && (

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { collection, query, onSnapshot, doc, updateDoc, Timestamp, orderBy } from 'firebase/firestore';
+import { collection, query, onSnapshot, doc, updateDoc, Timestamp, orderBy, limit, startAfter, getDocs, QueryDocumentSnapshot, DocumentData, where, getCountFromServer } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { RepairRequest } from '../../types';
-import { Clock, CheckCircle, XCircle, List, Download, FileText, Search, Grid, Table as TableIcon } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, Download, FileText, Search, Grid, Table as TableIcon } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import RepairRequestCard from '../../components/RepairRequestCard';
 import ActionReasonModal from '../../components/Admin/RequestDashboard/ActionReasonModal';
@@ -11,7 +11,7 @@ import { format } from 'date-fns';
 export default function AdminDashboard() {
   const { t } = useLanguage();
   const [repairs, setRepairs] = useState<RepairRequest[]>([]);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'completed' | 'cancelled'>('all');
+  const [filter, setFilter] = useState<'pending' | 'completed' | 'cancelled'>('pending');
   const [selectedRepair, setSelectedRepair] = useState<RepairRequest | null>(null);
   const [followUpAction, setFollowUpAction] = useState<{ [key: string]: string }>({});
   const [expandedDescriptions, setExpandedDescriptions] = useState<{ [key: string]: boolean }>({});
@@ -25,9 +25,47 @@ export default function AdminDashboard() {
   const [sortBy, setSortBy] = useState<'createdAt' | 'status' | 'orderNumber' | 'location' | 'submitterName'>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [selectedTableRepair, setSelectedTableRepair] = useState<RepairRequest | null>(null);
+  const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [pendingCount, setPendingCount] = useState<number>(0);
+  const [completedCount, setCompletedCount] = useState<number>(0);
+  const [cancelledCount, setCancelledCount] = useState<number>(0);
+  const PAGE_SIZE = 50;
 
+  // Fetch counts for all statuses
   useEffect(() => {
-    const q = query(collection(db, 'repairs'), orderBy('createdAt', 'desc'));
+    const fetchCounts = async () => {
+      try {
+        const pendingQuery = query(collection(db, 'repairs'), where('status', '==', 'pending'));
+        const completedQuery = query(collection(db, 'repairs'), where('status', '==', 'completed'));
+        const cancelledQuery = query(collection(db, 'repairs'), where('status', '==', 'cancelled'));
+
+        const [pendingSnapshot, completedSnapshot, cancelledSnapshot] = await Promise.all([
+          getCountFromServer(pendingQuery),
+          getCountFromServer(completedQuery),
+          getCountFromServer(cancelledQuery)
+        ]);
+
+        setPendingCount(pendingSnapshot.data().count);
+        setCompletedCount(completedSnapshot.data().count);
+        setCancelledCount(cancelledSnapshot.data().count);
+      } catch (error) {
+        console.error('Error fetching counts:', error);
+      }
+    };
+
+    fetchCounts();
+  }, []);
+
+  // Fetch repairs for selected filter
+  useEffect(() => {
+    const q = query(
+      collection(db, 'repairs'),
+      where('status', '==', filter),
+      orderBy('createdAt', 'desc'),
+      limit(PAGE_SIZE)
+    );
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const repairData: RepairRequest[] = [];
@@ -35,10 +73,46 @@ export default function AdminDashboard() {
         repairData.push({ id: doc.id, ...doc.data() } as RepairRequest);
       });
       setRepairs(repairData);
+      
+      // Update pagination state
+      const lastDoc = snapshot.docs[snapshot.docs.length - 1];
+      setLastVisible(lastDoc || null);
+      setHasMore(snapshot.docs.length === PAGE_SIZE);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [filter]);
+
+  const loadMore = async () => {
+    if (!lastVisible || !hasMore || isLoadingMore) return;
+    
+    setIsLoadingMore(true);
+    try {
+      const q = query(
+        collection(db, 'repairs'),
+        where('status', '==', filter),
+        orderBy('createdAt', 'desc'),
+        startAfter(lastVisible),
+        limit(PAGE_SIZE)
+      );
+      
+      const snapshot = await getDocs(q);
+      const newRepairs: RepairRequest[] = [];
+      snapshot.forEach((doc) => {
+        newRepairs.push({ id: doc.id, ...doc.data() } as RepairRequest);
+      });
+      
+      setRepairs(prev => [...prev, ...newRepairs]);
+      
+      const lastDoc = snapshot.docs[snapshot.docs.length - 1];
+      setLastVisible(lastDoc || null);
+      setHasMore(snapshot.docs.length === PAGE_SIZE);
+    } catch (error) {
+      console.error('Error loading more repairs:', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   const handleMarkAsCompleted = (repairId: string) => {
     setActionModal({ type: 'complete', repairId });
@@ -55,6 +129,9 @@ export default function AdminDashboard() {
         completionReason: reason || null,
       });
       setActionModal({ type: null, repairId: null });
+      // Update counts
+      setPendingCount(prev => Math.max(0, prev - 1));
+      setCompletedCount(prev => prev + 1);
     } catch (error) {
       console.error('Error updating repair:', error);
     }
@@ -92,6 +169,9 @@ export default function AdminDashboard() {
         cancellationReason: reason || null,
       });
       setActionModal({ type: null, repairId: null });
+      // Update counts
+      setPendingCount(prev => Math.max(0, prev - 1));
+      setCancelledCount(prev => prev + 1);
     } catch (error) {
       console.error('Error cancelling repair:', error);
     }
@@ -204,11 +284,8 @@ export default function AdminDashboard() {
   };
 
   const filteredRepairs = repairs.filter(repair => {
-    // Filter by status
-    const statusMatch = filter === 'all' || repair.status === filter;
-    
-    // Filter by search query
-    if (!searchQuery.trim()) return statusMatch;
+    // Filter by search query only (status is already filtered by the database query)
+    if (!searchQuery.trim()) return true;
     
     const query = searchQuery.toLowerCase();
     const searchableFields = [
@@ -221,9 +298,7 @@ export default function AdminDashboard() {
       repair.cancellationReason?.toLowerCase() || ''
     ];
     
-    const searchMatch = searchableFields.some(field => field.includes(query));
-    
-    return statusMatch && searchMatch;
+    return searchableFields.some(field => field.includes(query));
   });
 
   const handleSort = (field: typeof sortBy) => {
@@ -271,7 +346,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="my-requests-page admin-dashboard">
-      <div className="page-header">
+      <div className="dashboard-header">
         <div>
           <h1>{t('adminDashboard.title')}</h1>
         </div>
@@ -322,71 +397,25 @@ export default function AdminDashboard() {
 
       <div className="filter-tabs">
         <button
-          className={filter === 'all' ? 'filter-tab active' : 'filter-tab'}
-          onClick={() => setFilter('all')}
-        >
-          <List size={18} />
-          {t('adminDashboard.all')} ({filteredRepairs.length})
-        </button>
-        <button
           className={filter === 'pending' ? 'filter-tab active' : 'filter-tab'}
           onClick={() => setFilter('pending')}
         >
           <Clock size={18} />
-          {t('adminDashboard.pending')} ({repairs.filter(r => {
-            if (!searchQuery.trim()) return r.status === 'pending';
-            const query = searchQuery.toLowerCase();
-            const searchableFields = [
-              r.orderNumber?.toLowerCase() || '',
-              r.description?.toLowerCase() || '',
-              r.location?.toLowerCase() || '',
-              r.submitterName?.toLowerCase() || '',
-              r.followUpActions?.join(' ').toLowerCase() || '',
-              r.completionReason?.toLowerCase() || '',
-              r.cancellationReason?.toLowerCase() || ''
-            ];
-            return r.status === 'pending' && searchableFields.some(field => field.includes(query));
-          }).length})
+          {t('adminDashboard.pending')} ({pendingCount})
         </button>
         <button
           className={filter === 'completed' ? 'filter-tab active' : 'filter-tab'}
           onClick={() => setFilter('completed')}
         >
           <CheckCircle size={18} />
-          {t('adminDashboard.completed')} ({repairs.filter(r => {
-            if (!searchQuery.trim()) return r.status === 'completed';
-            const query = searchQuery.toLowerCase();
-            const searchableFields = [
-              r.orderNumber?.toLowerCase() || '',
-              r.description?.toLowerCase() || '',
-              r.location?.toLowerCase() || '',
-              r.submitterName?.toLowerCase() || '',
-              r.followUpActions?.join(' ').toLowerCase() || '',
-              r.completionReason?.toLowerCase() || '',
-              r.cancellationReason?.toLowerCase() || ''
-            ];
-            return r.status === 'completed' && searchableFields.some(field => field.includes(query));
-          }).length})
+          {t('adminDashboard.completed')} ({completedCount})
         </button>
         <button
           className={filter === 'cancelled' ? 'filter-tab active' : 'filter-tab'}
           onClick={() => setFilter('cancelled')}
         >
           <XCircle size={18} />
-          {t('adminDashboard.cancelled')} ({repairs.filter(r => {
-            if (!searchQuery.trim()) return r.status === 'cancelled';
-            const query = searchQuery.toLowerCase();
-            const searchableFields = [
-              r.orderNumber?.toLowerCase() || '',
-              r.description?.toLowerCase() || '',
-              r.location?.toLowerCase() || '',
-              r.submitterName?.toLowerCase() || '',
-              r.followUpActions?.join(' ').toLowerCase() || '',
-              r.completionReason?.toLowerCase() || '',
-              r.cancellationReason?.toLowerCase() || ''
-            ];
-            return r.status === 'cancelled' && searchableFields.some(field => field.includes(query));
-          }).length})
+          {t('adminDashboard.cancelled')} ({cancelledCount})
         </button>
       </div>
 
@@ -396,28 +425,30 @@ export default function AdminDashboard() {
           <h3>{t('adminDashboard.noRepairs')}</h3>
           <p>{t('adminDashboard.noRepairsDescription')}</p>
         </div>
-      ) : viewMode === 'grid' ? (
-        <div className="requests-grid">
-          {sortedRepairs.map((repair) => (
-            <RepairRequestCard
-              key={repair.id}
-              request={repair}
-              isExpanded={expandedDescriptions[repair.id!] || false}
-              onToggleDescription={toggleDescription}
-              truncateText={truncateText}
-              showSubmitterInfo={true}
-              showFollowUpActions={true}
-              showAdminActions={true}
-              followUpAction={followUpAction[repair.id!]}
-              onFollowUpActionChange={(value) => setFollowUpAction({ ...followUpAction, [repair.id!]: value })}
-              onAddFollowUpAction={() => handleAddFollowUpAction(repair.id!)}
-              onMarkAsCompleted={() => handleMarkAsCompleted(repair.id!)}
-              onCancelRepair={() => handleCancelRepair(repair.id!)}
-              onImageClick={setSelectedRepair}
-            />
-          ))}
-        </div>
       ) : (
+        <>
+          {viewMode === 'grid' ? (
+            <div className="requests-grid">
+              {sortedRepairs.map((repair) => (
+                <RepairRequestCard
+                  key={repair.id}
+                  request={repair}
+                  isExpanded={expandedDescriptions[repair.id!] || false}
+                  onToggleDescription={toggleDescription}
+                  truncateText={truncateText}
+                  showSubmitterInfo={true}
+                  showFollowUpActions={true}
+                  showAdminActions={true}
+                  followUpAction={followUpAction[repair.id!]}
+                  onFollowUpActionChange={(value) => setFollowUpAction({ ...followUpAction, [repair.id!]: value })}
+                  onAddFollowUpAction={() => handleAddFollowUpAction(repair.id!)}
+                  onMarkAsCompleted={() => handleMarkAsCompleted(repair.id!)}
+                  onCancelRepair={() => handleCancelRepair(repair.id!)}
+                  onImageClick={setSelectedRepair}
+                />
+              ))}
+            </div>
+          ) : (
         <div className="table-container">
           <table className="requests-table">
             <thead>
@@ -425,14 +456,11 @@ export default function AdminDashboard() {
                 <th onClick={() => handleSort('orderNumber')} className="sortable">
                   {t('adminDashboard.requestNumber')} {sortBy === 'orderNumber' && (sortOrder === 'asc' ? '↑' : '↓')}
                 </th>
-                <th onClick={() => handleSort('status')} className="sortable">
-                  {t('adminDashboard.status')} {sortBy === 'status' && (sortOrder === 'asc' ? '↑' : '↓')}
+                <th onClick={() => handleSort('location')} className="sortable">
+                  {t('repairForm.location')} {sortBy === 'location' && (sortOrder === 'asc' ? '↑' : '↓')}
                 </th>
                 <th onClick={() => handleSort('submitterName')} className="sortable">
                   {t('adminDashboard.submittedBy')} {sortBy === 'submitterName' && (sortOrder === 'asc' ? '↑' : '↓')}
-                </th>
-                <th onClick={() => handleSort('location')} className="sortable">
-                  {t('repairForm.location')} {sortBy === 'location' && (sortOrder === 'asc' ? '↑' : '↓')}
                 </th>
                 <th onClick={() => handleSort('createdAt')} className="sortable">
                   {t('adminDashboard.submittedOn')} {sortBy === 'createdAt' && (sortOrder === 'asc' ? '↑' : '↓')}
@@ -443,16 +471,16 @@ export default function AdminDashboard() {
             <tbody>
               {sortedRepairs.map((repair) => (
                 <tr key={repair.id} onClick={() => setSelectedTableRepair(repair)} className="clickable-row">
-                  <td className="request-number">{repair.orderNumber}</td>
-                  <td>
-                    <span className={`status-badge ${repair.status}`}>
-                      {repair.status === 'pending' && <Clock size={14} />}
-                      {repair.status === 'completed' && <CheckCircle size={14} />}
-                      {repair.status === 'cancelled' && <XCircle size={14} />}
+                  <td className="request-number">
+                    <span className="request-number-with-status">
+                      {repair.status === 'pending' && <Clock size={16} className="status-icon pending" />}
+                      {repair.status === 'completed' && <CheckCircle size={16} className="status-icon completed" />}
+                      {repair.status === 'cancelled' && <XCircle size={16} className="status-icon cancelled" />}
+                      {repair.orderNumber}
                     </span>
                   </td>
-                  <td>{repair.submitterName}</td>
                   <td>{repair.location}</td>
+                  <td>{repair.submitterName}</td>
                   <td>{format(repair.createdAt.toDate(), 'MMM dd, yyyy HH:mm')}</td>
                   {filter === 'pending' && (
                     <td onClick={(e) => e.stopPropagation()}>
@@ -479,6 +507,23 @@ export default function AdminDashboard() {
             </tbody>
           </table>
         </div>
+      )}
+          
+          {hasMore && (
+            <div className="load-more-container">
+              <button
+                onClick={loadMore}
+                disabled={isLoadingMore}
+                className="btn-secondary load-more-btn"
+              >
+                {isLoadingMore ? t('common.loading') || 'Loading...' : t('common.loadMore') || 'Load More'}
+              </button>
+              <p className="load-more-info">
+                {t('common.showing') || 'Showing'} {repairs.length} {t('common.requests') || 'requests'}
+              </p>
+            </div>
+          )}
+        </>
       )}
 
       {selectedRepair && (

@@ -1,5 +1,11 @@
 {
   "en": {
+    "common": {
+      "loadMore": "Load More",
+      "loading": "Loading...",
+      "showing": "Showing",
+      "requests": "requests"
+    },
     "app": {
       "title": "Repair Portal",
       "loading": "Loading...",
@@ -214,6 +220,12 @@
     }
   },
   "zh-TW": {
+    "common": {
+      "loadMore": "載入更多",
+      "loading": "載入中...",
+      "showing": "顯示",
+      "requests": "個申請"
+    },
     "app": {
       "title": "維修申請系統",
       "loading": "載入中...",
