@@ -15,7 +15,7 @@
     "repairForm": {
       "title": "Submit Repair Request",
       "yourName": "Your Name",
-      "namePlaceholder": "John Doe",
+      "namePlaceholder": "user123",
       "location": "Location",
       "locationPlaceholder": "e.g., Building A, Room 101",
       "description": "Description",
@@ -110,11 +110,11 @@
     },
     "userManagement": {
       "title": "Manage User",
-      "addUser": "Add User ppp",
+      "addUser": "Add User",
       "addNewUser": "Add New User",
       "editUser": "Edit User",
       "username": "Username",
-      "usernamePlaceholder": "John Doe",
+      "usernamePlaceholder": "user123",
       "department": "Department",
       "departmentPlaceholder": "IT / HR / Maintenance",
       "status": "Status",
@@ -147,7 +147,14 @@
       "confirmResetPassword": "Are you sure you want to reset this user's password? The user will need to change their password on next login.",
       "defaultPasswordInfo": "Default password",
       "firstLoginInfo": "User will be required to change password on first login.",
-      "userAddedPleaseLogin": "User added successfully. You will need to log in again."
+      "userAddedPleaseLogin": "User added successfully. You will need to log in again.",
+      "usernameValidationHint": "Must start with a letter, be more than 6 characters, and contain only letters and numbers",
+      "errors": {
+        "usernameEmpty": "Username cannot be empty.",
+        "usernameTooShort": "Username must be more than 6 characters.",
+        "usernameMustStartWithLetter": "Username must start with an alphabet character.",
+        "usernameInvalidCharacters": "Username can only contain letters and numbers (no spaces or special characters)."
+      }
     },
     "userLogin": {
       "title": "User Login",
@@ -356,7 +363,14 @@
       "confirmResetPassword": "確定要重置此用戶的密碼嗎？用戶將需要在下次登入時更改密碼。",
       "defaultPasswordInfo": "預設密碼",
       "firstLoginInfo": "用戶將在首次登入時被要求更改密碼。",
-      "userAddedPleaseLogin": "用戶已成功添加。您需要重新登入。"
+      "userAddedPleaseLogin": "用戶已成功添加。您需要重新登入。",
+      "usernameValidationHint": "必須以字母開頭，長度超過6個字符，並且只能包含字母和數字",
+      "errors": {
+        "usernameEmpty": "用戶名稱不能為空。",
+        "usernameTooShort": "用戶名稱必須超過6個字符。",
+        "usernameMustStartWithLetter": "用戶名稱必須以字母開頭。",
+        "usernameInvalidCharacters": "用戶名稱只能包含字母和數字（不允許空格或特殊字符）。"
+      }
     },
     "userLogin": {
       "title": "用戶登入",

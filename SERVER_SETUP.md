@@ -100,7 +100,7 @@ POST http://localhost:3001/api/create-user
 Content-Type: application/json
 
 {
-  "username": "John Doe",
+  "username": "JohnDoe",
   "department": "IT",
   "password": "Welcome123!",
   "createdBy": "admin@example.com"

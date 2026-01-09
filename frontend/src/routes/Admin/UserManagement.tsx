@@ -21,6 +21,7 @@ export default function UserManagement() {
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [modalError, setModalError] = useState('');
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [confirmModal, setConfirmModal] = useState<{
@@ -45,42 +46,58 @@ export default function UserManagement() {
     return () => unsubscribe();
   }, []);
 
+  // Validate username format
+  const validateUsername = (username: string): { isValid: boolean; error: string } => {
+    const trimmedUsername = username.trim();
+    
+    // Check if empty
+    if (!trimmedUsername) {
+      return { isValid: false, error: t('userManagement.errors.usernameEmpty') };
+    }
+    
+    // Check minimum length (more than 6 characters means at least 7)
+    if (trimmedUsername.length <= 6) {
+      return { isValid: false, error: t('userManagement.errors.usernameTooShort') };
+    }
+    
+    // Check if starts with alphabet
+    if (!/^[a-zA-Z]/.test(trimmedUsername)) {
+      return { isValid: false, error: t('userManagement.errors.usernameMustStartWithLetter') };
+    }
+    
+    // Check if contains only alphanumeric characters (no spaces or special characters)
+    if (!/^[a-zA-Z0-9]+$/.test(trimmedUsername)) {
+      return { isValid: false, error: t('userManagement.errors.usernameInvalidCharacters') };
+    }
+    
+    return { isValid: true, error: '' };
+  };
+
   // Sanitize username to ensure it can be used in email
   const sanitizeUsername = (username: string): string => {
     return username
       .trim()
-      .toLowerCase()
-      .normalize('NFD') // Decompose unicode characters
-      .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
-      .replace(/[^a-z0-9.-]/g, '') // Keep only valid email characters
-      .replace(/^[.-]+|[.-]+$/g, '') // Remove leading/trailing dots and hyphens
-      .replace(/\.{2,}/g, '.') // Replace multiple dots with single dot
-      .slice(0, 64);
+      .toLowerCase();
   };
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setModalError('');
     setLoading(true);
+
+    // Validate username
+    const validation = validateUsername(formData.username);
+    if (!validation.isValid) {
+      setModalError(validation.error);
+      setLoading(false);
+      return;
+    }
 
     // Sanitize inputs before sending
     const sanitizedUsername = sanitizeUsername(formData.username);
     const sanitizedDepartment = formData.department.trim();
-
-    // Validate sanitized username
-    if (!sanitizedUsername || sanitizedUsername.length === 0) {
-      setError('Username contains invalid characters. Please use only letters, numbers, dots, and hyphens.');
-      setLoading(false);
-      return;
-    }
-
-    // Additional validation for email format
-    if (sanitizedUsername.length < 1) {
-      setError('Username is too short.');
-      setLoading(false);
-      return;
-    }
 
     try {
       // Call Firebase Cloud Function to create user
@@ -243,7 +260,7 @@ export default function UserManagement() {
     <div className="user-management">
       <div className="dashboard-header">
         <h1>{t('userManagement.title')}</h1>
-        <button onClick={() => setShowAddModal(true)} className="btn-primary">
+        <button onClick={() => { setShowAddModal(true); setModalError(''); }} className="btn-primary">
           <UserPlus size={18} />
           {t('userManagement.addUser')}
         </button>
@@ -348,6 +365,12 @@ export default function UserManagement() {
               ×
             </button>
             <h2>{t('userManagement.addNewUser')}</h2>
+            {modalError && (
+              <div className="alert alert-error" style={{ marginBottom: '1rem' }}>
+                {modalError}
+                <button onClick={() => setModalError('')} className="alert-close">×</button>
+              </div>
+            )}
             <form onSubmit={handleAddUser}>
               <div className="form-group">
                 <label htmlFor="username">{t('userManagement.username')}</label>
@@ -356,26 +379,20 @@ export default function UserManagement() {
                   type="text"
                   value={formData.username}
                   onChange={(e) => {
-                    const cleaned = e.target.value
-                      .toLowerCase()
-                      .replace(/[^a-z0-9.-]/g, '')
-                      .replace(/\.{2,}/g, '.')
-                      .replace(/^[.-]+/, '');
+                    // Only allow alphanumeric characters during input
+                    const cleaned = e.target.value.replace(/[^a-zA-Z0-9]/g, '');
                     setFormData({ ...formData, username: cleaned });
+                    setModalError(''); // Clear error on input change
                   }}
-                  required
-                  placeholder={t('userManagement.usernamePlaceholder')}
+                  placeholder="e.g. john123"
                   autoComplete="off"
                   autoCapitalize="none"
                   autoCorrect="off"
                   spellCheck="false"
-                  inputMode="email"
                 />
-                {formData.username && (
-                  <small style={{ color: 'var(--text-secondary)', marginTop: '0.25rem', display: 'block' }}>
-                    Email will be: {formData.username}@repairportal.com
-                  </small>
-                )}
+                <small style={{ color: 'var(--text-secondary)', marginTop: '0.25rem', display: 'block' }}>
+                  {t('userManagement.usernameValidationHint')}
+                </small>
               </div>
               <div className="form-group">
                 <label htmlFor="department">{t('userManagement.department')}</label>
@@ -384,7 +401,6 @@ export default function UserManagement() {
                   type="text"
                   value={formData.department}
                   onChange={(e) => setFormData({ ...formData, department: e.target.value.trim() })}
-                  required
                   placeholder={t('userManagement.departmentPlaceholder')}
                   autoComplete="off"
                 />

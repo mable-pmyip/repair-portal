@@ -36,7 +36,7 @@ function handleHealth(): Response {
 async function handleCreateUser(request: Request, env: Env): Promise<Response> {
   try {
     const body = await request.json();
-    const { username, department, password, createdBy } = body as {
+    const { username, department, password } = body as {
       username?: string;
       department?: string;
       password?: string;

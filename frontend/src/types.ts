@@ -29,7 +29,6 @@ export interface PortalUser {
   email: string;
   username: string;
   department: string;
-  status: 'active' | 'suspended';
   isFirstLogin: boolean;
   createdAt: Timestamp;
   createdBy: string;

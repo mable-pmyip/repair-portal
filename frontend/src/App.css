@@ -2169,6 +2169,10 @@ button {
   margin-top: 1.5rem;
 }
 
+.modal-actions button {
+  flex: 1;
+}
+
 .alert {
   padding: 1rem 1.5rem;
   border-radius: 0.375rem;
