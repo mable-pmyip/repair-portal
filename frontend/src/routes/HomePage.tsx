@@ -8,9 +8,7 @@ export default function HomePage() {
   return (
     <div className="home-page">
       <div className="home-content">
-        <div className="home-icon">🔧</div>
-        <h1>{t('app.title')}</h1>
-        <p className="home-subtitle">Welcome to the Repair Portal</p>
+        <h1 className="home-main-title">Welcome to the Repair Portal</h1>
         <p className="home-description">Submit and track facility repair requests efficiently</p>
         <div className="home-actions">
           <button 
