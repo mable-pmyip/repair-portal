@@ -15,7 +15,6 @@ interface RepairFormProps {
 export default function RepairForm({ user, onSuccess, onCancel }: RepairFormProps) {
   const { t } = useLanguage();
   const [description, setDescription] = useState('');
-  const [submitterName, setSubmitterName] = useState(user.username);
   const [location, setLocation] = useState('');
   const [images, setImages] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
@@ -56,7 +55,7 @@ export default function RepairForm({ user, onSuccess, onCancel }: RepairFormProp
       await addDoc(collection(db, 'repairs'), {
         orderNumber,
         description,
-        submitterName,
+        submitterName: user.username,
         submitterEmail: user.email,
         submitterUid: user.uid,
         location,
@@ -85,19 +84,6 @@ export default function RepairForm({ user, onSuccess, onCancel }: RepairFormProp
       )}
       <h2>{t('repairForm.title')}</h2>
       <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="name">{t('repairForm.yourName')}</label>
-          <input
-            id="name"
-            type="text"
-            value={submitterName}
-            onChange={(e) => setSubmitterName(e.target.value)}
-            required
-            placeholder={t('repairForm.namePlaceholder')}
-            autoComplete="name"
-          />
-        </div>
-
         <div className="form-group">
           <label htmlFor="location">{t('repairForm.location')}</label>
           <input
@@ -139,11 +125,6 @@ export default function RepairForm({ user, onSuccess, onCancel }: RepairFormProp
         {error && <div className="error-message">{error}</div>}
 
         <div className="modal-actions">
-          {onCancel && (
-            <button type="button" onClick={onCancel} className="btn-secondary" disabled={loading}>
-              {t('repairForm.cancel')}
-            </button>
-          )}
           <button type="submit" disabled={loading} className="btn-primary">
             {loading ? t('repairForm.submitting') : t('repairForm.submitRequest')}
           </button>
