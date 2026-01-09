@@ -1005,8 +1005,6 @@ button {
   margin-bottom: 2rem;
   border-bottom: 2px solid var(--border-color);
 }
-  transition: all 0.2s;
-}
 
 .search-input:focus {
   outline: none;
@@ -1993,9 +1991,39 @@ button {
 }
 
 .confirm-actions button {
+  flex: 1;
   min-width: 120px;
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
+}
+
+.confirm-modal .form-group {
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.confirm-modal .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.confirm-modal .form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+}
+
+.confirm-modal .form-group input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .action-reason-modal .form-group {

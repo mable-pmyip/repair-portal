@@ -168,7 +168,7 @@ export default function UserManagement() {
   const handleResetPassword = async (userId: string) => {
     setConfirmModal({
       isOpen: true,
-      title: 'Reset Password',
+      title: t('userManagement.resetPasswordTitle'),
       message: t('userManagement.confirmResetPassword'),
       onConfirm: async () => {
         setConfirmModal({ ...confirmModal, isOpen: false });
@@ -188,7 +188,7 @@ export default function UserManagement() {
   const handleDeleteUser = async (user: PortalUser) => {
     setConfirmModal({
       isOpen: true,
-      title: 'Delete User',
+      title: t('userManagement.deleteUserTitle'),
       message: t('userManagement.confirmDeleteUser'),
       onConfirm: async () => {
         setConfirmModal({ ...confirmModal, isOpen: false });
@@ -427,26 +427,24 @@ export default function UserManagement() {
       {/* Edit User Modal */}
       {showEditModal && selectedUser && (
         <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setShowEditModal(false)}>
-              ×
-            </button>
-            <h2>{t('userManagement.editUser')}</h2>
-            <form onSubmit={handleEditUser}>
+          <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-icon info">
+              <Edit2 size={48} />
+            </div>
+            <h2 className="confirm-title">{t('userManagement.editUser')}</h2>
+            <form onSubmit={handleEditUser} style={{ textAlign: 'left' }}>
               <div className="form-group">
                 <label htmlFor="edit-username">{t('userManagement.username')}</label>
-                <input
-                  id="edit-username"
-                  type="text"
-                  value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value.trim() })}
-                  required
-                  placeholder={t('userManagement.usernamePlaceholder')}
-                  autoComplete="off"
-                  autoCapitalize="none"
-                  autoCorrect="off"
-                  spellCheck="false"
-                />
+                <div style={{ 
+                  padding: '0.75rem', 
+                  backgroundColor: '#f3f4f6',
+                  color: '#6b7280',
+                  borderRadius: '0.375rem',
+                  fontSize: '1rem',
+                  fontWeight: '500'
+                }}>
+                  {formData.username}
+                </div>
               </div>
               <div className="form-group">
                 <label htmlFor="edit-department">{t('userManagement.department')}</label>
@@ -463,7 +461,7 @@ export default function UserManagement() {
                   spellCheck="false"
                 />
               </div>
-              <div className="modal-actions">
+              <div className="confirm-actions">
                 <button type="button" onClick={() => setShowEditModal(false)} className="btn-secondary">
                   {t('userManagement.cancel')}
                 </button>
