@@ -31,7 +31,7 @@ export default function AdminDashboard() {
   const [pendingCount, setPendingCount] = useState<number>(0);
   const [completedCount, setCompletedCount] = useState<number>(0);
   const [cancelledCount, setCancelledCount] = useState<number>(0);
-  const PAGE_SIZE = 4;
+  const PAGE_SIZE = 30;
 
   // Fetch counts for all statuses
   useEffect(() => {
