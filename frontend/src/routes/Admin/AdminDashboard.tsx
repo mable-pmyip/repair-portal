@@ -31,7 +31,7 @@ export default function AdminDashboard() {
   const [pendingCount, setPendingCount] = useState<number>(0);
   const [completedCount, setCompletedCount] = useState<number>(0);
   const [cancelledCount, setCancelledCount] = useState<number>(0);
-  const PAGE_SIZE = 50;
+  const PAGE_SIZE = 4;
 
   // Fetch counts for all statuses
   useEffect(() => {
@@ -60,12 +60,20 @@ export default function AdminDashboard() {
 
   // Fetch repairs for selected filter
   useEffect(() => {
-    const q = query(
-      collection(db, 'repairs'),
-      where('status', '==', filter),
-      orderBy('createdAt', 'desc'),
-      limit(PAGE_SIZE)
-    );
+    // When searching, fetch all documents (no limit) to search across all data
+    // When not searching, use pagination with limit
+    const q = searchQuery.trim()
+      ? query(
+          collection(db, 'repairs'),
+          where('status', '==', filter),
+          orderBy('createdAt', 'desc')
+        )
+      : query(
+          collection(db, 'repairs'),
+          where('status', '==', filter),
+          orderBy('createdAt', 'desc'),
+          limit(PAGE_SIZE)
+        );
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const repairData: RepairRequest[] = [];
@@ -74,14 +82,20 @@ export default function AdminDashboard() {
       });
       setRepairs(repairData);
       
-      // Update pagination state
-      const lastDoc = snapshot.docs[snapshot.docs.length - 1];
-      setLastVisible(lastDoc || null);
-      setHasMore(snapshot.docs.length === PAGE_SIZE);
+      // Update pagination state (only relevant when not searching)
+      if (!searchQuery.trim()) {
+        const lastDoc = snapshot.docs[snapshot.docs.length - 1];
+        setLastVisible(lastDoc || null);
+        setHasMore(snapshot.docs.length === PAGE_SIZE);
+      } else {
+        // When searching, disable pagination
+        setLastVisible(null);
+        setHasMore(false);
+      }
     });
 
     return () => unsubscribe();
-  }, [filter]);
+  }, [filter, searchQuery]);
 
   const loadMore = async () => {
     if (!lastVisible || !hasMore || isLoadingMore) return;
