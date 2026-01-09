@@ -21,9 +21,11 @@
       "description": "Description",
       "descriptionPlaceholder": "Describe the issue that needs repair...",
       "uploadImages": "Upload Images",
+      "optional": "optional",
       "filesSelected": "file(s) selected",
       "submitting": "Submitting...",
       "submitRequest": "Submit Request",
+      "cancel": "Cancel",
       "errorMessage": "Failed to submit repair request. Please try again."
     },
     "submissionSuccess": {
@@ -179,12 +181,6 @@
       "dashboardDescription": "View and manage all repair requests",
       "usersDescription": "Add, edit, or manage user accounts"
     },
-    "userHome": {
-      "title": "Welcome Back!",
-      "subtitle": "What would you like to do today?",
-      "submitDescription": "Report a new repair or maintenance issue",
-      "myRequestsDescription": "View and track your submitted requests"
-    },
     "myRequests": {
       "title": "My Repair Requests",
       "searchPlaceholder": "Search by order number, description, location...",
@@ -239,9 +235,11 @@
       "description": "問題描述",
       "descriptionPlaceholder": "請描述需要維修的問題...",
       "uploadImages": "上傳圖片",
+      "optional": "可選",
       "filesSelected": "個檔案已選擇",
       "submitting": "提交中...",
       "submitRequest": "提交申請",
+      "cancel": "取消",
       "errorMessage": "提交維修申請失敗。請重試。"
     },
     "submissionSuccess": {
@@ -397,12 +395,6 @@
       "subtitle": "今天想做什麼？",
       "dashboardDescription": "查看和管理所有維修請求",
       "usersDescription": "新增、編輯或管理用戶帳戶"
-    },
-    "userHome": {
-      "title": "歡迎回來！",
-      "subtitle": "今天想做什麼？",
-      "submitDescription": "報告新的維修或保養問題",
-      "myRequestsDescription": "查看和追蹤您提交的申請"
     },
     "myRequests": {
       "title": "我的維修申請",

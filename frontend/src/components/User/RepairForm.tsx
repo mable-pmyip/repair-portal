@@ -4,13 +4,15 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../../firebase';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { PortalUser } from '../../types';
+import { Loader2 } from 'lucide-react';
 
 interface RepairFormProps {
   user: PortalUser;
   onSuccess: (orderNumber: string) => void;
+  onCancel?: () => void;
 }
 
-export default function RepairForm({ user, onSuccess }: RepairFormProps) {
+export default function RepairForm({ user, onSuccess, onCancel }: RepairFormProps) {
   const { t } = useLanguage();
   const [description, setDescription] = useState('');
   const [submitterName, setSubmitterName] = useState(user.username);
@@ -75,66 +77,78 @@ export default function RepairForm({ user, onSuccess }: RepairFormProps) {
 
   return (
     <div className="repair-form-container">
-      <div className="repair-form-card">
-        <h2>{t('repairForm.title')}</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="name">{t('repairForm.yourName')}</label>
-            <input
-              id="name"
-              type="text"
-              value={submitterName}
-              onChange={(e) => setSubmitterName(e.target.value)}
-              required
-              placeholder={t('repairForm.namePlaceholder')}
-            />
-          </div>
+      {loading && (
+        <div className="loading-overlay">
+          <Loader2 size={48} className="spinner" />
+          <p>{t('repairForm.submitting')}</p>
+        </div>
+      )}
+      <h2>{t('repairForm.title')}</h2>
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="name">{t('repairForm.yourName')}</label>
+          <input
+            id="name"
+            type="text"
+            value={submitterName}
+            onChange={(e) => setSubmitterName(e.target.value)}
+            required
+            placeholder={t('repairForm.namePlaceholder')}
+            autoComplete="name"
+          />
+        </div>
 
-          <div className="form-group">
-            <label htmlFor="location">{t('repairForm.location')}</label>
-            <input
-              id="location"
-              type="text"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              required
-              placeholder={t('repairForm.locationPlaceholder')}
-            />
-          </div>
+        <div className="form-group">
+          <label htmlFor="location">{t('repairForm.location')}</label>
+          <input
+            id="location"
+            type="text"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            required
+            placeholder={t('repairForm.locationPlaceholder')}
+            autoComplete="off"
+          />
+        </div>
 
-          <div className="form-group">
-            <label htmlFor="description">{t('repairForm.description')}</label>
-            <textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-              placeholder={t('repairForm.descriptionPlaceholder')}
-              rows={5}
-            />
-          </div>
+        <div className="form-group">
+          <label htmlFor="description">{t('repairForm.description')}</label>
+          <textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            required
+            placeholder={t('repairForm.descriptionPlaceholder')}
+            rows={5}
+          />
+        </div>
 
-          <div className="form-group">
-            <label htmlFor="images">{t('repairForm.uploadImages')}</label>
-            <input
-              id="images"
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleImageChange}
-            />
-            {images.length > 0 && (
-              <p className="file-info">{images.length} {t('repairForm.filesSelected')}</p>
-            )}
-          </div>
+        <div className="form-group">
+          <label htmlFor="images">{t('repairForm.uploadImages')} ({t('repairForm.optional')})</label>
+          <input
+            id="images"
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleImageChange}
+          />
+          {images.length > 0 && (
+            <p className="file-info">{images.length} {t('repairForm.filesSelected')}</p>
+          )}
+        </div>
+        {error && <div className="error-message">{error}</div>}
 
-          {error && <div className="error-message">{error}</div>}
-
+        <div className="modal-actions">
+          {onCancel && (
+            <button type="button" onClick={onCancel} className="btn-secondary" disabled={loading}>
+              {t('repairForm.cancel')}
+            </button>
+          )}
           <button type="submit" disabled={loading} className="btn-primary">
             {loading ? t('repairForm.submitting') : t('repairForm.submitRequest')}
           </button>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   );
 }

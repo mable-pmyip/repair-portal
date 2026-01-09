@@ -3,8 +3,10 @@ import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestor
 import { db } from '../../firebase';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { PortalUser, RepairRequest } from '../../types';
-import { Clock, CheckCircle, XCircle, List, FileText, Search, Grid, Table as TableIcon } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, List, FileText, Search, Grid, Table as TableIcon, Plus } from 'lucide-react';
 import RepairRequestCard from '../../components/RepairRequestCard';
+import RepairForm from '../../components/User/RepairForm';
+import SubmissionSuccess from '../../components/User/SubmissionSuccess';
 import { format } from 'date-fns';
 
 interface MyRequestsPageProps {
@@ -18,10 +20,13 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed' | 'cancelled'>('all');
   const [expandedDescriptions, setExpandedDescriptions] = useState<{ [key: string]: boolean }>({});
   const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [sortBy, setSortBy] = useState<'createdAt' | 'status' | 'orderNumber' | 'location'>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [selectedTableRequest, setSelectedTableRequest] = useState<RepairRequest | null>(null);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [submittedOrderNumber, setSubmittedOrderNumber] = useState<string | null>(null);
 
   useEffect(() => {
     console.log('MyRequestsPage - user.uid:', user.uid);
@@ -140,10 +145,39 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
     return 0;
   });
 
+  const handleSubmissionSuccess = (orderNumber: string) => {
+    setSubmittedOrderNumber(orderNumber);
+  };
+
+  const handleCloseModal = () => {
+    setShowSubmitModal(false);
+    setSubmittedOrderNumber(null);
+  };
+
   return (
     <div className="my-requests-page">
-      <div className="page-header">
+      {/* Mobile Header */}
+      <div className="page-header-mobile">
         <h1>{t('myRequests.title')}</h1>
+        <button 
+          className="search-toggle-btn"
+          onClick={() => setShowSearch(!showSearch)}
+          aria-label="Toggle search"
+        >
+          <Search size={20} />
+        </button>
+      </div>
+
+      {/* Desktop Header */}
+      <div className="page-header-desktop">
+        <h1>{t('myRequests.title')}</h1>
+        <button
+          className="btn-primary"
+          onClick={() => setShowSubmitModal(true)}
+        >
+          <Plus size={20} />
+          Submit Request
+        </button>
       </div>
 
       {error && (
@@ -156,6 +190,31 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
         </div>
       )}
 
+      {/* Mobile Search */}
+      {showSearch && (
+        <div className="search-box-mobile">
+          <Search size={18} className="search-icon" />
+          <input
+            type="text"
+            placeholder={t('myRequests.searchPlaceholder')}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="search-input"
+            autoFocus
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="search-clear"
+              aria-label="Clear search"
+            >
+              ×
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Desktop Search and View Controls */}
       <div className="search-and-view-controls">
         <div className="search-box">
           <Search size={20} className="search-icon" />
@@ -195,6 +254,38 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
         </div>
       </div>
 
+      {/* Mobile Filter Tabs */}
+      <div className="filter-tabs-mobile">
+        <button
+          className={filter === 'all' ? 'filter-tab-simple active' : 'filter-tab-simple'}
+          onClick={() => setFilter('all')}
+        >
+          {t('adminDashboard.all')}
+        </button>
+        <button
+          className={filter === 'pending' ? 'filter-tab-simple active' : 'filter-tab-simple'}
+          onClick={() => setFilter('pending')}
+        >
+          <Clock size={16} />
+          {t('adminDashboard.pending')}
+        </button>
+        <button
+          className={filter === 'completed' ? 'filter-tab-simple active' : 'filter-tab-simple'}
+          onClick={() => setFilter('completed')}
+        >
+          <CheckCircle size={16} />
+          {t('adminDashboard.completed')}
+        </button>
+        <button
+          className={filter === 'cancelled' ? 'filter-tab-simple active' : 'filter-tab-simple'}
+          onClick={() => setFilter('cancelled')}
+        >
+          <XCircle size={16} />
+          {t('adminDashboard.cancelled')}
+        </button>
+      </div>
+
+      {/* Desktop Filter Tabs */}
       <div className="filter-tabs">
         <button
           className={filter === 'all' ? 'filter-tab active' : 'filter-tab'}
@@ -254,7 +345,6 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
               r.description?.toLowerCase() || '',
               r.location?.toLowerCase() || '',
               r.followUpActions?.join(' ').toLowerCase() || '',
-              r.completionReason?.toLowerCase() || '',
               r.cancellationReason?.toLowerCase() || ''
             ];
             return r.status === 'cancelled' && searchableFields.some(field => field.includes(query));
@@ -342,6 +432,40 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
               showAdminActions={false}
               onImageClick={() => {}}
             />
+          </div>
+        </div>
+      )}
+      
+      {/* Mobile Floating Plus Button */}
+      <button
+        className="floating-add-button-mobile"
+        onClick={() => setShowSubmitModal(true)}
+        aria-label="Submit new request"
+      >
+        <Plus size={24} />
+      </button>
+
+      {/* Submit Request Modal */}
+      {showSubmitModal && (
+        <div className="modal-overlay" onClick={handleCloseModal}>
+          <div className="modal-content modal-form-content" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="modal-close"
+              onClick={handleCloseModal}
+            >
+              ×
+            </button>
+            {submittedOrderNumber ? (
+              <SubmissionSuccess
+                orderNumber={submittedOrderNumber}
+              />
+            ) : (
+              <RepairForm 
+                user={user} 
+                onSuccess={handleSubmissionSuccess}
+                onCancel={handleCloseModal}
+              />
+            )}
           </div>
         </div>
       )}
