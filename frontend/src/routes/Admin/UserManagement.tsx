@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { collection, query, onSnapshot, doc, updateDoc, deleteDoc, addDoc } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { db, auth } from '../../firebase';
 import { PortalUser, DEFAULT_PASSWORD } from '../../types';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -81,31 +82,20 @@ export default function UserManagement() {
       return;
     }
 
-    // Use environment variable for API URL (Worker will be deployed separately)
-    const apiUrl = import.meta.env.VITE_API_URL || '/api';
-
     try {
-      // Call backend API to create user (Cloudflare Worker)
-      const response = await fetch(`${apiUrl}/create-user`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: sanitizedUsername,
-          department: sanitizedDepartment,
-          password: DEFAULT_PASSWORD,
-          createdBy: auth.currentUser?.email || 'admin',
-        }),
+      // Call Firebase Cloud Function to create user
+      const functions = getFunctions();
+      const createUser = httpsCallable(functions, 'createUser');
+      
+      const result = await createUser({
+        username: sanitizedUsername,
+        department: sanitizedDepartment,
+        password: DEFAULT_PASSWORD,
       });
 
-      const data = await response.json();
+      const data = result.data as { uid: string; email: string };
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create user');
-      }
-
-      // Add user to Firestore from frontend (has proper auth)
+      // Add user to Firestore
       await addDoc(collection(db, 'users'), {
         uid: data.uid,
         email: data.email,
@@ -121,7 +111,12 @@ export default function UserManagement() {
       setShowAddModal(false);
       setFormData({ username: '', department: '' });
     } catch (err: any) {
-      setError(err.message || t('userManagement.errorAddingUser'));
+      const errorMessage = err.message || t('userManagement.errorAddingUser');
+      if (errorMessage.includes('already-exists')) {
+        setError(`User "${sanitizedUsername}" already exists in Firebase Authentication.`);
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -181,6 +176,11 @@ export default function UserManagement() {
       onConfirm: async () => {
         setConfirmModal({ ...confirmModal, isOpen: false });
         try {
+          // Delete from Firebase Auth using Cloud Function
+          const functions = getFunctions();
+          const deleteUser = httpsCallable(functions, 'deleteUser');
+          await deleteUser({ uid: user.uid });
+
           // Delete from Firestore
           if (user.id) {
             await deleteDoc(doc(db, 'users', user.id));
