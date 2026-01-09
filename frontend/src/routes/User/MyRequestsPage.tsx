@@ -419,7 +419,6 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
               <RepairForm 
                 user={user} 
                 onSuccess={handleSubmissionSuccess}
-                onCancel={handleCloseModal}
               />
             )}
           </div>

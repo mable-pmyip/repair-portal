@@ -10,10 +10,9 @@ import { compressImages } from '../../utils/imageCompression';
 interface RepairFormProps {
   user: PortalUser;
   onSuccess: (orderNumber: string) => void;
-  onCancel?: () => void;
 }
 
-export default function RepairForm({ user, onSuccess, onCancel }: RepairFormProps) {
+export default function RepairForm({ user, onSuccess }: RepairFormProps) {
   const { t } = useLanguage();
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
