@@ -43,13 +43,6 @@ export default function UserLogin({ onLoginSuccess }: UserLoginProps) {
       const userId = querySnapshot.docs[0].id;
       userData.id = userId;
 
-      // Check if user is suspended
-      if (userData.status === 'suspended') {
-        setError(t('userLogin.accountSuspended'));
-        await auth.signOut();
-        return;
-      }
-
       // Update last login
       const userRef = doc(db, 'users', userId);
       await updateDoc(userRef, {
