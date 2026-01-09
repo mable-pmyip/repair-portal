@@ -129,11 +129,11 @@ function AppContent() {
         </div>
         {isAdmin ? (
           <Link to="/admin" className="nav-brand nav-brand-link">
-            <h1>🔧 {t('app.title')}</h1>
+            <h1>{t('app.title')}</h1>
           </Link>
         ) : (
           <div className="nav-brand">
-            <h1>🔧 {t('app.title')}</h1>
+            <h1>{t('app.title')}</h1>
           </div>
         )}
         <div className="nav-links">
