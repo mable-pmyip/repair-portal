@@ -182,6 +182,10 @@
   position: relative;
 }
 
+.home-language-selector-mobile {
+  display: none;
+}
+
 .home-main-title {
   font-size: 3.5rem;
   margin-bottom: 1rem;
@@ -1921,6 +1925,12 @@ button {
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+
+  .home-language-selector-mobile {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
   }
 
   /* Hide text, show only icons on mobile */

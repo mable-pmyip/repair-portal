@@ -18,6 +18,10 @@
       "logout": "Logout",
       "footer": "© 2026 Repair Portal. All rights reserved."
     },
+    "homePage": {
+      "welcomeText": "Welcome to the Repair Portal",
+      "bodyText": "Submit and track facility repair requests efficiently"
+    },
     "repairForm": {
       "title": "Submit Repair Request",
       "yourName": "Your Name",
@@ -239,6 +243,10 @@
       "logout": "登出",
       "footer": "© 2026 維修申請系統。版權所有。"
     },
+    "homePage": {
+      "welcomeText": "歡迎來到維修申請系統",
+      "bodyText": "有效率地提交並追蹤設施維修申請"
+    },
     "repairForm": {
       "title": "提交維修申請",
       "yourName": "您的姓名",
@@ -415,7 +423,8 @@
       "searchPlaceholder": "搜尋訂單編號、描述、位置...",
       "noRequests": "未找到申請",
       "noRequestsDescription": "您尚未提交任何維修申請。點擊「提交維修申請」來建立一個。"
-    },    "passwordReset": {
+    },    
+    "passwordReset": {
       "title": "重置您的密碼",
       "description": "出於安全考慮，您必須在繼續之前更改密碼。",
       "newPassword": "新密碼",
