@@ -53,7 +53,5 @@ repair-portal/
 
 ## Documentation
 
-- [User Management Guide](USER_MANAGEMENT.md)
-- [Language Feature Details](LANGUAGE_FEATURE.md)
 - [Frontend README](frontend/README.md)
 - [Functions README](functions/README.md)
