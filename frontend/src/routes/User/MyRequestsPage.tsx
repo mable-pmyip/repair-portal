@@ -3,10 +3,11 @@ import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestor
 import { db } from '../../firebase';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { PortalUser, RepairRequest } from '../../types';
-import { Clock, CheckCircle, XCircle, FileText, Search, Grid, Table as TableIcon, Plus } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, FileText, Search, Grid, Table as TableIcon, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import RepairRequestCard from '../../components/RepairRequestCard';
 import RepairForm from '../../components/User/RepairForm';
 import SubmissionSuccess from '../../components/User/SubmissionSuccess';
+import ImageWithLoading from '../../components/ImageWithLoading';
 import { format } from 'date-fns';
 
 interface MyRequestsPageProps {
@@ -25,6 +26,7 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
   const [sortBy, setSortBy] = useState<'createdAt' | 'status' | 'orderNumber' | 'location'>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [selectedTableRequest, setSelectedTableRequest] = useState<RepairRequest | null>(null);
+  const [selectedImage, setSelectedImage] = useState<{ request: RepairRequest; imageIndex: number } | null>(null);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [submittedOrderNumber, setSubmittedOrderNumber] = useState<string | null>(null);
 
@@ -152,6 +154,20 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
   const handleCloseModal = () => {
     setShowSubmitModal(false);
     setSubmittedOrderNumber(null);
+  };
+
+  const handleNextImage = () => {
+    if (!selectedImage) return;
+    const nextIndex = (selectedImage.imageIndex + 1) % selectedImage.request.imageUrls.length;
+    setSelectedImage({ ...selectedImage, imageIndex: nextIndex });
+  };
+
+  const handlePrevImage = () => {
+    if (!selectedImage) return;
+    const prevIndex = selectedImage.imageIndex === 0
+      ? selectedImage.request.imageUrls.length - 1
+      : selectedImage.imageIndex - 1;
+    setSelectedImage({ ...selectedImage, imageIndex: prevIndex });
   };
 
   return (
@@ -324,7 +340,7 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
                   showSubmitterInfo={false}
                   showFollowUpActions={false}
                   showAdminActions={false}
-                  onImageClick={(req, imageIndex) => window.open(req.imageUrls[imageIndex], '_blank')}
+                  onImageClick={(req, imageIndex) => setSelectedImage({ request: req, imageIndex })}
                 />
               ))}
             </div>
@@ -386,12 +402,52 @@ export default function MyRequestsPage({ user }: MyRequestsPageProps) {
               showSubmitterInfo={false}
               showFollowUpActions={false}
               showAdminActions={false}
-              onImageClick={() => {}}
+              onImageClick={(req, imageIndex) => setSelectedImage({ request: req, imageIndex })}
             />
           </div>
         </div>
       )}
-      
+
+      {/* Image Modal with Navigation */}
+      {selectedImage && (
+        <div className="modal-overlay" onClick={() => setSelectedImage(null)}>
+          <div className="modal-content image-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setSelectedImage(null)}>
+              ×
+            </button>
+            <h2>{selectedImage.request.orderNumber}</h2>
+            <div className="modal-images">
+              <ImageWithLoading
+                src={selectedImage.request.imageUrls[selectedImage.imageIndex]}
+                alt={`Repair ${selectedImage.imageIndex + 1}`}
+                className="full-image"
+              />
+              {selectedImage.request.imageUrls.length > 1 && (
+                <>
+                  <button
+                    className="image-nav-btn prev"
+                    onClick={handlePrevImage}
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft size={32} />
+                  </button>
+                  <button
+                    className="image-nav-btn next"
+                    onClick={handleNextImage}
+                    aria-label="Next image"
+                  >
+                    <ChevronRight size={32} />
+                  </button>
+                  <div className="image-counter">
+                    {selectedImage.imageIndex + 1} / {selectedImage.request.imageUrls.length}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Mobile Floating Plus Button */}
       <button
         className="floating-add-button-mobile"

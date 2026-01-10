@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Clock, CheckCircle, XCircle, Download, FileText, Search, Grid, Table as TableIcon } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, Download, FileText, Search, Grid, Table as TableIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { RepairRequest } from '../../types';
 import RepairRequestCard from '../../components/RepairRequestCard';
@@ -15,6 +15,7 @@ export default function AdminDashboard() {
   const { t } = useLanguage();
   const [filter, setFilter] = useState<'pending' | 'completed' | 'cancelled'>('pending');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [sortBy, setSortBy] = useState<'createdAt' | 'status' | 'orderNumber' | 'location' | 'submitterName'>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -48,6 +49,20 @@ export default function AdminDashboard() {
   const truncateText = (text: string, maxLength: number = 200) => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
+  };
+
+  const handleNextImage = () => {
+    if (!selectedRepair) return;
+    const nextIndex = (selectedRepair.imageIndex + 1) % selectedRepair.repair.imageUrls.length;
+    setSelectedRepair({ ...selectedRepair, imageIndex: nextIndex });
+  };
+
+  const handlePrevImage = () => {
+    if (!selectedRepair) return;
+    const prevIndex = selectedRepair.imageIndex === 0
+      ? selectedRepair.repair.imageUrls.length - 1
+      : selectedRepair.imageIndex - 1;
+    setSelectedRepair({ ...selectedRepair, imageIndex: prevIndex });
   };
 
   const filteredRepairs = repairs.filter(repair => {
@@ -112,6 +127,19 @@ export default function AdminDashboard() {
 
   return (
     <div className="my-requests-page admin-dashboard">
+      {/* Mobile Header */}
+      <div className="page-header-mobile">
+        <h1>{t('adminDashboard.title')}</h1>
+        <button
+          className="search-toggle-btn"
+          onClick={() => setShowSearch(!showSearch)}
+          aria-label="Toggle search"
+        >
+          <Search size={20} />
+        </button>
+      </div>
+
+      {/* Desktop Header */}
       <div className="dashboard-header">
         <div>
           <h1>{t('adminDashboard.title')}</h1>
@@ -122,6 +150,31 @@ export default function AdminDashboard() {
         </button>
       </div>
 
+      {/* Mobile Search */}
+      {showSearch && (
+        <div className="search-box-mobile">
+          <Search size={18} className="search-icon" />
+          <input
+            type="text"
+            placeholder={t('adminDashboard.searchPlaceholder')}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="search-input"
+            autoFocus
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="search-clear"
+              aria-label="Clear search"
+            >
+              ×
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Desktop Search and View Controls */}
       <div className="search-and-view-controls">
         <div className="search-box">
           <Search size={20} className="search-icon" />
@@ -161,6 +214,32 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* Mobile Filter Tabs */}
+      <div className="filter-tabs-mobile">
+        <button
+          className={filter === 'pending' ? 'filter-tab-simple active' : 'filter-tab-simple'}
+          onClick={() => setFilter('pending')}
+        >
+          <Clock size={16} />
+          {t('adminDashboard.pending')}
+        </button>
+        <button
+          className={filter === 'completed' ? 'filter-tab-simple active' : 'filter-tab-simple'}
+          onClick={() => setFilter('completed')}
+        >
+          <CheckCircle size={16} />
+          {t('adminDashboard.completed')}
+        </button>
+        <button
+          className={filter === 'cancelled' ? 'filter-tab-simple active' : 'filter-tab-simple'}
+          onClick={() => setFilter('cancelled')}
+        >
+          <XCircle size={16} />
+          {t('adminDashboard.cancelled')}
+        </button>
+      </div>
+
+      {/* Desktop Filter Tabs */}
       <div className="filter-tabs">
         <button
           className={filter === 'pending' ? 'filter-tab active' : 'filter-tab'}
@@ -246,7 +325,7 @@ export default function AdminDashboard() {
 
       {selectedRepair && (
         <div className="modal-overlay" onClick={() => setSelectedRepair(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content image-modal" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setSelectedRepair(null)}>
               ×
             </button>
@@ -257,6 +336,27 @@ export default function AdminDashboard() {
                 alt={`Repair ${selectedRepair.imageIndex + 1}`}
                 className="full-image"
               />
+              {selectedRepair.repair.imageUrls.length > 1 && (
+                <>
+                  <button
+                    className="image-nav-btn prev"
+                    onClick={handlePrevImage}
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft size={32} />
+                  </button>
+                  <button
+                    className="image-nav-btn next"
+                    onClick={handleNextImage}
+                    aria-label="Next image"
+                  >
+                    <ChevronRight size={32} />
+                  </button>
+                  <div className="image-counter">
+                    {selectedRepair.imageIndex + 1} / {selectedRepair.repair.imageUrls.length}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

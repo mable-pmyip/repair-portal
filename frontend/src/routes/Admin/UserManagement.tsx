@@ -127,6 +127,12 @@ export default function UserManagement() {
 
   return (
     <div className="user-management">
+      {/* Mobile Header */}
+      <div className="page-header-mobile">
+        <h1>{t('userManagement.title')}</h1>
+      </div>
+
+      {/* Desktop Header */}
       <div className="dashboard-header">
         <h1>{t('userManagement.title')}</h1>
         <button onClick={() => setShowAddModal(true)} className="btn-primary">
@@ -149,6 +155,53 @@ export default function UserManagement() {
         </div>
       )}
 
+      {/* Mobile Cards View */}
+      <div className="users-cards-mobile">
+        {sortedUsers.length === 0 ? (
+          <div className="empty-state">
+            <UserPlus size={64} />
+            <h3>{t('userManagement.noUsers')}</h3>
+          </div>
+        ) : (
+          sortedUsers.map((user) => (
+            <div key={user.id} className="user-card-mobile">
+              <div className="user-card-header">
+                <h3>{user.username}</h3>
+                <span className="user-department">{user.department}</span>
+              </div>
+              <div className="user-card-details">
+                <p><strong>{t('userManagement.createdAt')}:</strong> {format(user.createdAt.toDate(), 'MMM dd, yyyy')}</p>
+                <p><strong>{t('userManagement.lastLogin')}:</strong> {user.lastLogin ? format(user.lastLogin.toDate(), 'MMM dd, yyyy HH:mm') : '-'}</p>
+              </div>
+              <div className="user-card-actions">
+                <button
+                  onClick={() => openEditModal(user)}
+                  className="btn-secondary btn-small"
+                >
+                  <Edit2 size={16} />
+                  {t('userManagement.edit')}
+                </button>
+                <button
+                  onClick={() => handleResetPassword(user.id!, user.uid)}
+                  className="btn-secondary btn-small"
+                >
+                  <Lock size={16} />
+                  {t('userManagement.resetPassword')}
+                </button>
+                <button
+                  onClick={() => handleDeleteUser(user)}
+                  className="btn-danger btn-small"
+                >
+                  <Trash2 size={16} />
+                  {t('userManagement.delete')}
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table View */}
       <div className="users-table-container">
         <table className="users-table">
           <thead>
@@ -243,6 +296,15 @@ export default function UserManagement() {
         onSuccess={(message) => setSuccess(message)}
         onError={(message) => setError(message)}
       />
+
+      {/* Mobile Floating Add Button */}
+      <button
+        className="floating-add-button-mobile"
+        onClick={() => setShowAddModal(true)}
+        aria-label="Add new user"
+      >
+        <UserPlus size={24} />
+      </button>
 
       {/* Handle password reset and user deletion */}
       <ConfirmModal
