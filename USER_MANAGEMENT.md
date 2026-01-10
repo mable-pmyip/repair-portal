@@ -37,14 +37,14 @@ The Repair Portal now includes a comprehensive user management system with secur
 ## Configuration
 
 ### Admin Account
-The admin email is configured in [App.tsx](src/App.tsx):
+The admin email is configured in [frontend/src/App.tsx](frontend/src/App.tsx):
 ```typescript
 const ADMIN_EMAIL = 'admin@repairportal.com';
 ```
 Update this to your admin email address.
 
 ### Default Password
-Default password for new users is defined in [types.ts](src/types.ts):
+Default password for new users is defined in [frontend/src/types.ts](frontend/src/types.ts):
 ```typescript
 export const DEFAULT_PASSWORD = 'TempPass123!';
 ```
@@ -106,7 +106,7 @@ Once logged in:
 
 ### New Files Created
 ```
-src/
+frontend/src/
 ├── components/
 │   ├── UserManagement.tsx       # Admin UI for managing users
 │   ├── UserLogin.tsx            # User login form
@@ -116,7 +116,7 @@ src/
 
 ### Modified Files
 ```
-src/
+frontend/src/
 ├── App.tsx                       # Updated authentication flow
 ├── App.css                       # Added styles for new components
 ├── components/

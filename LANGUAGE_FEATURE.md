@@ -5,7 +5,7 @@ The Repair Portal app now supports English and Traditional Chinese (繁體中文
 
 ## Implementation Details
 
-### 1. **Translations File** ([src/translations.json](src/translations.json))
+### 1. **Translations File** ([frontend/src/translations.json](frontend/src/translations.json))
 - Contains all text strings in both English (`en`) and Traditional Chinese (`zh-TW`)
 - Organized by component/feature area for easy maintenance
 - Includes translations for:
@@ -16,7 +16,7 @@ The Repair Portal app now supports English and Traditional Chinese (繁體中文
   - Admin dashboard (including export modal)
   - Language selector labels
 
-### 2. **Language Context** ([src/contexts/LanguageContext.tsx](src/contexts/LanguageContext.tsx))
+### 2. **Language Context** ([frontend/src/contexts/LanguageContext.tsx](frontend/src/contexts/LanguageContext.tsx))
 - React Context for managing language state across the app
 - Provides `useLanguage()` hook for accessing:
   - `language`: Current selected language ('en' or 'zh-TW')
@@ -25,7 +25,7 @@ The Repair Portal app now supports English and Traditional Chinese (繁體中文
 - Persists language preference in localStorage
 - Automatically loads saved language on app start
 
-### 3. **Language Selector Component** ([src/components/LanguageSelector.tsx](src/components/LanguageSelector.tsx))
+### 3. **Language Selector Component** ([frontend/src/components/LanguageSelector.tsx](frontend/src/components/LanguageSelector.tsx))
 - Dropdown selector with globe icon
 - Positioned in the navigation bar
 - Shows language names in both languages:
@@ -40,7 +40,7 @@ All components now use the translation system:
 - **AdminDashboard.tsx**: Dashboard title, filters, action buttons, export modal
 - **SubmissionSuccess.tsx**: Success messages and instructions
 
-### 5. **Styling** ([src/App.css](src/App.css))
+### 5. **Styling** ([frontend/src/App.css](frontend/src/App.css))
 Added styles for the language selector:
 - Integrated into navigation bar
 - Consistent with app design
@@ -57,7 +57,7 @@ Added styles for the language selector:
 ### For Developers
 To add or update translations:
 
-1. **Add new translation key** in `src/translations.json`:
+1. **Add new translation key** in `frontend/src/translations.json`:
 ```json
 {
   "en": {
