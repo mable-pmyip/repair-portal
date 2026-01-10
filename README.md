@@ -15,7 +15,6 @@ A web application for managing repair requests with user authentication, admin m
 - **User Management**: 
   - Add new users with default passwords
   - Edit user information
-  - Suspend/activate user accounts
   - Reset user passwords
   - Delete users
   - View user login history
@@ -28,7 +27,6 @@ A web application for managing repair requests with user authentication, admin m
 ### Security Features
 - Secure Firebase authentication
 - Password strength validation
-- Account status management (active/suspended)
 - First-time login password reset
 - Admin-initiated password resets
 - Session management
@@ -47,14 +45,7 @@ npm install
    - Enable Storage
    - Copy your Firebase config to `src/firebase.ts`
 
-3. Configure Admin Email:
-   - Open `src/App.tsx`
-   - Update `ADMIN_EMAIL` constant with your admin email:
-   ```typescript
-   const ADMIN_EMAIL = 'your-admin@email.com';
-   ```
-
-4. Run the development server:
+3. Run the development server:
 ```bash
 npm run dev
 ```
@@ -74,7 +65,7 @@ npm run dev
 ## Getting Started
 
 ### Admin Access
-1. Create an admin account in Firebase Authentication with the email specified in `ADMIN_EMAIL`
+1. Create an admin account in Firebase Authentication
 2. Log in at the admin panel
 3. Navigate to "User Management"
 4. Add users who will submit repair requests
