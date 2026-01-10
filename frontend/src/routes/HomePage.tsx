@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
+import LanguageSelector from '../components/LanguageSelector';
 
 export default function HomePage() {
   const { t } = useLanguage();
@@ -8,6 +9,9 @@ export default function HomePage() {
   return (
     <div className="home-page">
       <div className="home-content">
+        <div className="home-language-selector-mobile">
+          <LanguageSelector />
+        </div>
         <h1 className="home-main-title">Welcome to the Repair Portal</h1>
         <p className="home-description">Submit and track facility repair requests efficiently</p>
         <div className="home-actions">

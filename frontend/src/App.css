@@ -182,6 +182,10 @@
   position: relative;
 }
 
+.home-language-selector-mobile {
+  display: none;
+}
+
 .home-main-title {
   font-size: 3.5rem;
   margin-bottom: 1rem;
@@ -1903,12 +1907,26 @@ button {
 
 /* Responsive */
 @media (max-width: 768px) {
+  .app {
+    height: 100vh;
+    overflow: hidden;
+  }
+
   .navbar {
     padding: 0.75rem 1rem;
+    flex-shrink: 0;
   }
 
   .nav-brand h1 {
     font-size: 1.125rem;
+  }
+
+  .main-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
   }
 
   .footer {
@@ -1917,10 +1935,17 @@ button {
 
   .home-page {
     padding: 2rem 1rem;
-    min-height: calc(100vh - 100px);
+    min-height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex: 1;
+  }
+
+  .home-language-selector-mobile {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
   }
 
   /* Hide text, show only icons on mobile */
@@ -1938,10 +1963,6 @@ button {
 
   .nav-links {
     gap: 0.5rem;
-  }
-
-  .main-content {
-    padding: 1rem;
   }
 
   /* Search and view controls */
@@ -3304,6 +3325,23 @@ button {
   .my-requests-page {
     max-width: 600px;
     padding: 1rem;
+    padding-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+  }
+
+  .user-management {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    padding-bottom: 1rem;
+  }
+
+  .admin-dashboard {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
   }
 
   /* Hide desktop elements */
@@ -3551,8 +3589,8 @@ button {
   }
 
   .github-link svg {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
   }
 
   .nav-brand h1 {
@@ -3564,16 +3602,13 @@ button {
     padding: 0.25rem;
   }
 
-  .footer {
-    display: none;
-  }
-
   .home-page {
     padding: 1.5rem 0.75rem;
-    min-height: calc(100vh - 80px);
+    min-height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex: 1;
   }
 
   .home-content h1 {
