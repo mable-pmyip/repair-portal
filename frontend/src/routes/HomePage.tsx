@@ -9,9 +9,6 @@ export default function HomePage() {
   return (
     <div className="home-page">
       <div className="home-content">
-        <div className="home-language-selector-mobile">
-          <LanguageSelector />
-        </div>
         <h1 className="home-main-title">{t('homePage.welcomeText')}</h1>
         <p className="home-description">{t('homePage.bodyText')}</p>
         <div className="home-actions">
@@ -35,6 +32,9 @@ export default function HomePage() {
             </svg>
             {t('app.adminLogin')}
           </button>
+        </div>
+        <div className="home-language-selector-mobile">
+          <LanguageSelector />
         </div>
       </div>
     </div>
